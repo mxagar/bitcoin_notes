@@ -1,0 +1,10 @@
+WARNING: This file is TXT with my own personal formatting style,
+in which ideas are indented according to their hierarchical relationships.
+Mikel Sagardia, 2021-2022
+
+Altogether, one major sources are summarized:
+- "Mastering Ethereum", A. Antonopoulos, O'Reilly
+
+####################################
+# Mastering Ethereum (Antonopoulos Book): Notes
+####################################
