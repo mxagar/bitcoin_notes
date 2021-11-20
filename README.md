@@ -7,4 +7,13 @@ The main source of information are the books by Andreas M. Antonopoulos:
 - "Mastering Ethereum", O'Reilly
 - "Mastering the Lightning Network", O'Reilly
 
-Note that I don't use 
+Basically, I've done a summary of them.
+
+Note that I don't use Markdown style, but my personal formatting in TXT: ideas are hierarchically indented -- I find this style to be very comfortable and fast for checking any information.
+
+See also:
+
+- `~/Dropbox/Documentation/howtos/bitcoin_coding_howto.txt`
+- [https://github.com/mxagar/blockchain_specialization_coursera](https://github.com/mxagar/blockchain_specialization_coursera)
+- [https://github.com/mxagar/crypto_analysis](https://github.com/mxagar/crypto_analysis)
+
