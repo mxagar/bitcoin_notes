@@ -1,8 +1,7 @@
-WARNING: This file is TXT with my own personal formatting style,
-in which ideas are indented according to their hierarchical relationships.
+WARNING: This file is TXT with my own personal formatting style, in which ideas are indented according to their hierarchical relationships.
 Mikel Sagardia, 2021-2022
 
-Altogether, one major sources are summarized:
+Altogether, one major source is summarized:
 - "Mastering the Lightning Network", A. Antonopoulos, O'Reilly
 
 ####################################
