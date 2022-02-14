@@ -14,6 +14,5 @@ Note that I don't use Markdown style, but my personal formatting in TXT: ideas a
 See also:
 
 - `~/Dropbox/Documentation/howtos/bitcoin_coding_howto.txt`
-- [https://github.com/mxagar/blockchain_specialization_coursera](https://github.com/mxagar/blockchain_specialization_coursera)
 - [https://github.com/mxagar/crypto_analysis](https://github.com/mxagar/crypto_analysis)
 
