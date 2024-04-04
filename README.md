@@ -1,12 +1,12 @@
-# Notes on Bitcoin and Ethereum
+# Notes on Bitcoin
 
-This repository contains my **personal notes** collected while studying the Bitcoin and Ethereum blockchains.
+This repository contains my **personal notes** collected while studying the Bitcoin network.
 
-The main source of information are the books by Andreas M. Antonopoulos:
+The main source of information are these books:
 
-- "Mastering Bitcoin", O'Reilly
-- "Mastering Ethereum", O'Reilly
-- "Mastering the Lightning Network", O'Reilly
+- "Mastering Bitcoin", Antonopoulos, O'Reilly
+- "Mastering the Lightning Network", Antonopoulos et al., O'Reilly
+- "Programming Bitcoin", Song, O'Reilly
 
 Basically, I've done a summary of them.
 
@@ -14,7 +14,6 @@ Note that I don't use Markdown style, but my personal formatting in TXT: ideas a
 
 See also:
 
-- `~/Dropbox/Documentation/howtos/bitcoin_coding_howto.txt` (not public)
 - [https://github.com/mxagar/crypto_analysis](https://github.com/mxagar/crypto_analysis)
 
 Mikel Sagardia, 2020.  
