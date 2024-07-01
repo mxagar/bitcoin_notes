@@ -4,17 +4,16 @@ This repository contains my **personal notes** collected while studying the Bitc
 
 The main source of information are these books:
 
-- "Mastering Bitcoin", Antonopoulos, O'Reilly
-- "Mastering the Lightning Network", Antonopoulos et al., O'Reilly
-- "Programming Bitcoin", Song, O'Reilly
+- "Mastering Bitcoin", Antonopoulos, O'Reilly: [`bitcoin_antonopoulos/`](./bitcoin_antonopoulos/).
+- "Mastering the Lightning Network", Antonopoulos et al., O'Reilly: [`bitcoin_lightning_antonopoulos/`](./bitcoin_lightning_antonopoulos/).
+- "Programming Bitcoin", Song, O'Reilly: [`bitcoin_programming_song/`](./bitcoin_programming_song/).
 
-Basically, I've done a summary of them.
-
-Note that I don't use Markdown style, but my personal formatting in TXT: ideas are hierarchically indented -- I find this style to be very comfortable and fast for checking any information.
+Additionally, I have collected some practical notes in [`bitcoin_practical/`](./bitcoin_practical/) from different sources.
 
 See also:
 
-- [https://github.com/mxagar/crypto_analysis](https://github.com/mxagar/crypto_analysis)
+- Invaluable Bitcoin educational resources from [Jameson Lopp](https://www.lopp.net)
+- Some financial analyses of mine, just for fun: [mxagar/crypto_analysis](https://github.com/mxagar/crypto_analysis).
 
 Mikel Sagardia, 2020.  
 No guarantees.
