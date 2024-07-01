@@ -12,7 +12,7 @@ Additionally, I have collected some practical notes in [`bitcoin_practical/`](./
 
 See also:
 
-- Invaluable Bitcoin educational resources from [Jameson Lopp](https://www.lopp.net)
+- Invaluable Bitcoin educational resources from [Jameson Lopp](https://www.lopp.net).
 - Some financial analyses of mine, just for fun: [mxagar/crypto_analysis](https://github.com/mxagar/crypto_analysis).
 
 Mikel Sagardia, 2020.  
