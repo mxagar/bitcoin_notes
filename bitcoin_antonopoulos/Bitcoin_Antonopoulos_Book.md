@@ -2,39 +2,87 @@
 
 These a re my notes of the book **"Mastering Bitcoin", by A. Antonopoulos (O'Reilly)**.
 
+I have extended the content of the book with my own tests, e.g., using a toy node.
+
 Mikel Sagardia, 2020.  
 No guarantees.
 
 ## Chapter 1: Introduction
 
-- [Mastering Bitcoin Book GitHub Repository](https://github.com/bitcoinbook/bitcoinbook)
+The book has its own repository:
+
+[Mastering Bitcoin Book GitHub Repository](https://github.com/bitcoinbook/bitcoinbook)
+
+I have used some of the media and material in that repository in my notes/summary.
+
+### Setup a Node
+
+To test many things explained in the book it is helpful to have a node up and running. To see how to set up a node, check the co-located guide [`../bitcoin_practical/Bitcoing_Practical_Guide.md`](../bitcoin_practical/Bitcoing_Practical_Guide.md). Example nodes easy to setup using a Raspberry Pi:
+
+- [MyNode](https://mynodebtc.github.io)
+- [Umbrel](https://umbrel.com)
 
 ## Chapter 2: How Bitcoin Works
 
+### Basics
+
 Bitcoin system consists of:
-- Wallets containing keys
-- Transactions that are propagated across the network
-- Miners who produce (through competition) the consensus blockchain
+
+- Wallets containing keys that can sign transactions.
+- Transactions that are propagated across the network, peer-to-peer, without central "authority".
+- Miners who produce (through competition) the consensus blockchain; every 10 minutes approximately miners compete for solidifying a block of transactions. The difficulty of the mining activity needs to be adjusted so that the 10 minute block time is maintained constant regardless of the number of miners in the system.
+
+Bitcoin is not only a digital currency, it's also a network that solves the trust problem without centralized agents that provide it.
+
+Some other properties of Bitcoin:
+
+- There will be 21 million coins.
+- Every block, bitcoin is created and delivered to the miner who won the mining race.
+- Every 4 years the block subsidy is halved: that's known as the halving.
+- The last coin will be mined around 2140.
+- Bitcoin is not anonymous: once an identity is attached to an address, all associated transactions are easy to identify and track.
+- There are different types of wallets: Desktop, Mobile, Web, Hardware (cold), Paper (cold), etc.
+- There are several types of nodes:
+  - Full node: it has an updated, life copy of the blockchain.
+  - Lightweight node: Simple-Payment-Verification (SVP) node, which contains part of the blockchain and connects to full nodes to have access to all transactions.
+  - Miner node: a node with mining capabilities, often part of a pool.
 
 ### Bitcoin Explorers
-- [Blockchain Explorer](https://www.blockchain.com)
-  - IMPORTANT NOTE: Whenever you use an online service, your IP is logged with the info you check! Use the explorer from your node!
 
-  Usage:
-  - `https://www.blockchain.com/btc/tx/<tx-id>`
-  - `https://www.blockchain.com/btc/tx/0627052b6f28912f2703066a912ea577f2ce4da4caa5a5fbd8a57286c345c2f2`
+Example: [Blockchain Explorer](https://www.blockchain.com).
+
+:warning: **IMPORTANT NOTE: Whenever you use an online service, your IP is logged with the info you check! Use the explorer from your node!**
+
+Usage with the transaction `0627052b6f28912f2703066a912ea577f2ce4da4caa5a5fbd8a57286c345c2f2` made by Andreas Antonopoulos:
+
+- `https://www.blockchain.com/btc/tx/<tx-id>`
+- `https://www.blockchain.com/btc/tx/0627052b6f28912f2703066a912ea577f2ce4da4caa5a5fbd8a57286c345c2f2`
+
+Better use a **local bitcoin explorer** for our transactions, e.g., the one from MyNode:
+
+![Block explorer](./assets/block_explorer.png)
+
+If we have access to a bitcoin node (e.g., with [MyNode](https://mynodebtc.github.io)), we can check the transaction info as follows:
+
+```bash
+# Log in via SSH; we might need to use the local IP
+ssh admin@mynode.local
+
+
+```
 
 ### Transactions
 
 Transactions consist of inputs and outputs:
+
 - Inputs = Outputs + Fees
-  - Inputs: Debits
-  - Outputs: Credits
-- Bitcoin addresses transfer value (inputs) to new Bitcoin addresses (outputs)
-- A small fee is taken from the inputs, which goes to the node that writes the transaction into the blockchain
-- Several inputs and outputs (& addresses) can appear in a transaction
-- Spending = Signing a transaction that transfers value to a new address
-- Inputs contain proof of ownership, independently verifiable
+- Inputs: Debits
+- Outputs: Credits (receiver, new address)
+- Bitcoin addresses transfer value (inputs) to new Bitcoin addresses (outputs).
+- A small fee is taken from the inputs, which goes to the node that writes the transaction into the blockchain; so the miner earns the block subsidy and the fees.
+- Several inputs and outputs (& addresses) can appear in a transaction.
+- Spending = Signing a transaction that transfers value to a new address.
+- Inputs contain proof of ownership, independently verifiable.
 
 #### Transaction Chains
 
