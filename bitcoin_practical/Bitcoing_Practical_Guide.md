@@ -14,5 +14,7 @@ TBD.
 
 ## Sparrow and Coldcard
 
+## Electrum
+
 ## Lost+Found
 
