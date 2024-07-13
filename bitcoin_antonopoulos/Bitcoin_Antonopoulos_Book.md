@@ -62,62 +62,6 @@ Better use a **local bitcoin explorer** for our transactions, e.g., the one from
 
 ![Block explorer](./assets/block_explorer.png)
 
-### Bitcoin Client 101
-
-If we have access to a bitcoin node (e.g., with [MyNode](https://mynodebtc.github.io)) we can interact with the Bitcoin client.
-
-To see how to set up a node, check the co-located guide [`../bitcoin_practical/Bitcoing_Practical_Guide.md`](../bitcoin_practical/Bitcoing_Practical_Guide.md).
-
-Basic commands:
-
-```bash
-# Log in via SSH; we might need to use the local IP
-# The IP can be obtained, e.g., with Angry IP Scanner
-ssh admin@mynode.local
-
-# Provides information about the current state of the blockchain
-bitcoin-cli getblockchaininfo
-
-# Returns information about the network and the connected peers
-bitcoin-cli getnetworkinfo
-
-# Returns data about each connected network node
-bitcoin-cli getpeerinfo
-
-# Provides mining-related information such as hashrate, difficulty, etc.
-bitcoin-cli getmininginfo
-
-# Retrieves information about a specific block by its hash
-bitcoin-cli getblock <blockhash>
-
-# Gets the raw transaction data for a given transaction ID
-# true: decode hexstring
-bitcoin-cli getrawtransaction <txid> true
-
-# Get mempool info: general stats
-bitcoin-cli getmempoolinfo
-
-# List Transactions in Mempool: all the txids waiting to be mined
-bitcoin-cli getrawmempool
-
-# Get Detailed Information on a Specific Mempool Transaction
-bitcoin-cli getmempoolentry <txid>
-
-# Provides information about the wallet, including balance, etc.
-bitcoin-cli getwalletinfo
-
-# Generates a new Bitcoin address for receiving payments
-bitcoin-cli getnewaddress
-
-# Lists the most recent transactions in the wallet
-bitcoin-cli listtransactions
-
-# Lists unspent transaction outputs in the wallet
-bitcoin-cli listunspent
-```
-
-There are much more commands, among others, we can interact with the wallet programmatically: receive, send, etc.
-
 ### Transactions
 
 Transactions consist of inputs and outputs:
@@ -338,66 +282,189 @@ Key Ideas:
 
 ## Chapter 3: Bitcoin Core: The Reference Implementation
 
-**Bitcoin Core: Repository**
-- [Bitcoin Core GitHub Repository](https://github.com/bitcoin/bitcoin)
-- MIT license
-- Originally published by Satoshi Nakamoto, now handled by many other developers
-- Original Bitcoin Core implementation has:
-  - Wallet - but better use another one, more secure
-  - Transaction & block validation engine
-  - Full network node
+[Bitcoin Core GitHub Repository](https://github.com/bitcoin/bitcoin):
 
-**Bitcoin Core Compilation**
-- Compilation done step by step - I've done that already
+- MIT license.
+- Originally published by Satoshi Nakamoto, now handled by many other developers.
+- Original Bitcoin Core implementation has:
+  - Wallet; but better use another one, more secure.
+  - Transaction & block validation engine.
+  - Full network node.
+
+### Setup a Bitcoin Node
+
+To test many things explained in the book it is helpful to have a node up and running. To see how to set up a node, check the co-located guide [`../bitcoin_practical/Bitcoing_Practical_Guide.md`](../bitcoin_practical/Bitcoing_Practical_Guide.md). Example nodes easy to setup using a Raspberry Pi:
+
+- [MyNode](https://mynodebtc.github.io)
+- [Umbrel](https://umbrel.com)
+
+In any case, the book explains how to clone the original repository and compile it:
+
+- Compilation done step by step
 - After compilation, we get two main executables:
   - `/usr/local/bin/bitcoind`: The node running all the time
   - `/usr/local/bin/bitcoin-cli`: The client to connect to the node
 
-**Configuration**
-- Set the configuration file `~.bitcoin/bitcoin.conf`
-  - Choose strong password for RPC
-  - `bitcoind --help` displays all possible config parameters, like:
-    - `datadir`: Where the blockchain data will go
-    - `prune`: Delete old blocks
-    - `txindex`: Maintain index of transactions (set it to 1 if we want to check any transaction)
-    - `maxconnections`
-    - ...
+The node is configured in the configuration file located in `~.bitcoin/bitcoin.conf`
 
-**Starting Bitcoin Node**
+- Choose strong password for RPC
+- `bitcoind --help` displays all possible config parameters, like:
+  - `datadir`: Where the blockchain data will go
+  - `prune`: Delete old blocks
+  - `txindex`: Maintain index of transactions (set it to 1 if we want to check any transaction)
+  - `maxconnections`
+  - ...
+
+After all that, we can **start the Bitcoin node**:
+
 - `bitcoind -daemon`
 - Usually, it's set to the start-up files/script
 
-**Getting Info from the Node**
-- `bitcoin-cli [command]`
+### Bitcoin CLI and API 101
 
-**Bitcoin Core Application Programming Interface: bitcoin-cli**
-- `bitcoin-cli` is a JSON-RPC interface
-  - RPC = Remote Procedure Call
-  - It means: `bitcoin-cli` is the client which requests the server `bitcoind` (the node) for info, which is delivered as JSON strings
+If we have access to a bitcoin node (e.g., with [MyNode](https://mynodebtc.github.io)) we can interact with the Bitcoin client.
 
-**bitcoin-cli Commands**
-- `bitcoin-cli help [command]`
-  - Example: `bitcoin-cli help getblockhash`
-- `bitcoin-cli getinfo`: Status of our node
-- `bitcoin-cli getrawtransaction <tx id>`: Hexadecimal code of transaction is returned; we need to decode it
-- `bitcoin-cli decoderawtransaction <tx hexadecimal>`: JSON string of transaction is returned; we see the values and the addresses in it
-- `bitcoin-cli getblockhash 1000`: Hash of block with index 1000, we need to decode it; the index or id is called the height
-- `bitcoin-cli getblock <block hash>`: JSON string of block returned; here, we can see all the transactions of the block and follow the transactions
+To see how to set up a node, check the co-located guide [`../bitcoin_practical/Bitcoing_Practical_Guide.md`](../bitcoin_practical/Bitcoing_Practical_Guide.md).
 
-**RPC Interface**
-- We can access the node via HTTPS protocol
-  - For instance using curl or any other tool
-  - There is an example in the book for that
-  - Another option is to use libraries that do that
+The Bitcoin CLI is `bitcoin-cli`:
 
-**Libraries**
-- Many libraries, e.g., for Python: `python-bitcoinlib`
-  - [python-bitcoinlib GitHub Repository](https://github.com/petertodd/python-bitcoinlib)
+- `bitcoin-cli` is a JSON-RPC interface.
+- RPC = Remote Procedure Call.
+- That means: `bitcoin-cli` is the client which requests the server `bitcoind` (the node) for info, which is delivered as JSON strings.
 
-**Three Examples Shown**
+Thanks to the RPC Interface, we can access the node via HTTPS protocol:
+
+- For instance using curl or any other tool
+- There is an example in the book for that
+- Another option is to use libraries that do that
+- Or, `bitcoin-cli`
+
+#### Basic `bitcoin-cli` Commands
+
+```bash
+# Log in via SSH; we might need to use the local IP
+# The IP can be obtained, e.g., with Angry IP Scanner
+# Note that we use admin user
+# but config stuff for Bitcoin is really
+# in /home/bitcoin/.bitcoin
+ssh admin@mynode.local
+
+# Help of a command
+bitcoin-cli help <command>
+bitcoin-cli help getblockhash
+
+# Status of our node
+bitcoin-cli getinfo
+
+# Provides information about the current state of the blockchain
+bitcoin-cli getblockchaininfo
+
+# Returns information about the network and the connected peers
+bitcoin-cli getnetworkinfo
+
+# Returns data about each connected network node
+bitcoin-cli getpeerinfo
+
+# Provides mining-related information such as hashrate, difficulty, etc.
+bitcoin-cli getmininginfo
+
+# Hexadecimal code of transaction is returned; we need to decode it
+bitcoin-cli getrawtransaction <txid>
+
+# JSON string of transaction is returned; we see the values and the addresses in it
+bitcoin-cli decoderawtransaction <tx-hex>
+
+# Gets the raw transaction data for a given transaction ID
+# true: decode hexstring
+bitcoin-cli getrawtransaction <txid> true
+
+# Hash of block with index 1000, we need to decode it; the index or id is called the height
+bitcoin-cli getblockhash 1000
+
+# JSON string of block returned; here, we can see all the transactions of the block and follow the transactions
+bitcoin-cli getblock <block-hash>
+
+# Get mempool info: general stats
+bitcoin-cli getmempoolinfo
+
+# List Transactions in Mempool: all the txids waiting to be mined
+bitcoin-cli getrawmempool
+
+# Get Detailed Information on a Specific Mempool Transaction
+bitcoin-cli getmempoolentry <txid>
+
+# Provides information about the wallet, including balance, etc.
+bitcoin-cli getwalletinfo
+
+# Generates a new Bitcoin address for receiving payments
+bitcoin-cli getnewaddress
+
+# Lists the most recent transactions in the wallet
+bitcoin-cli listtransactions
+
+# Lists unspent transaction outputs in the wallet
+bitcoin-cli listunspent
+```
+
+There are much more commands, among others, we can interact with the wallet programmatically: receive, send, etc.
+
+#### Enable RPC Access in Node
+
+In addition to logging via SSH to the node and running `bitcoin-cli` on the node, we can also make use of the RPC functionality, i.e., we can query from another computer (in the same network) using cURL or dedicated libraries.
+
+To enable TPC access, we need to modify the `/home/bitcoin/.bitcoin/bitcoin.conf` file in the node to contain:
+
+```makefile
+rpcuser=yourrpcusername         # Select one
+rpcpassword=yourrpcpassword     # Select one
+rpcallowip=192.168.1.0/24       # Adjust this to match your local network
+rpcbind=0.0.0.0                 # Bind to all network interfaces
+rpcport=8332                    # Default RPC port for Bitcoin
+```
+
+Then, in our local computer, we can create a `.env` file which contains the values of 
+
+- `RPCUSER`
+- `RPCPASSWORD`
+- and the IP of our node, e.g., `BTC_NODE_IP`
+
+If we have a MyNode, all that is already configured and we can access the values of `rpcuser` and `rpcpassword` from the web UI:
+
+- Open Web UI: `https://BTC_NODE_IP`; username + PW
+- Bitcoin app: `Manage`
+- Info Tab: RPC Username, RPC Password (show)
+
+![MyNode Web UI](./assets/mynode.png)
+
+#### Examples in Python
+
+There are many libraries which interact with the RPC, e.g., for Python: [python-bitcoinlib GitHub Repository](https://github.com/petertodd/python-bitcoinlib).
+
+Three examples shown in the book using `python-bitcoinlib`:
+
 1. Get number of blocks so far
 2. Get outputs of a transaction
 3. Get all the outputs of all transactions in a block
+
+Notebook: [`Bitcoin_API_Examples.ipynb`](./Bitcoin_API_Examples.ipynb).
+
+Environment setup:
+
+```bash
+conda env create -f conda.yaml
+conda activate btc
+```
+
+Code summary:
+
+```python
+
+```
+
+#### Examples with cURL
+
+TBD.
+
 
 ## Chapter 4: Keys, Addresses
 
