@@ -424,13 +424,14 @@ rpcport=8332                    # Default RPC port for Bitcoin
 
 Then, in our local computer, we can create a `.env` file which contains the values of 
 
-- `RPCUSER`
-- `RPCPASSWORD`
-- and the IP of our node, e.g., `BTC_NODE_IP`
+- `RPC_USER`: either we define it or take the one in `bitcoin.conf`
+- `RPC_PASSWORD`: either we define it or take the one in `bitcoin.conf`
+- the IP of our node, e.g., `BTC_NODE_IP`: we can scan our local network, e.g., with Angry IP Scanner
+- `RPC_PORT`: default 8332
 
-If we have a MyNode, all that is already configured and we can access the values of `rpcuser` and `rpcpassword` from the web UI:
+**If we have a MyNode, all that is already configured** and we can access the values of `rpcuser` and `rpcpassword` from the web UI:
 
-- Open Web UI: `https://BTC_NODE_IP`; username + PW
+- Open Web UI: `https://BTC_NODE_IP`; username + PW (not RPC)
 - Bitcoin app: `Manage`
 - Info Tab: RPC Username, RPC Password (show)
 
@@ -440,13 +441,12 @@ If we have a MyNode, all that is already configured and we can access the values
 
 There are many libraries which interact with the RPC, e.g., for Python: [python-bitcoinlib GitHub Repository](https://github.com/petertodd/python-bitcoinlib).
 
+Notebook: [`Bitcoin_API_Examples.ipynb`](./Bitcoin_API_Examples.ipynb).  
 Three examples shown in the book using `python-bitcoinlib`:
 
 1. Get number of blocks so far
 2. Get outputs of a transaction
 3. Get all the outputs of all transactions in a block
-
-Notebook: [`Bitcoin_API_Examples.ipynb`](./Bitcoin_API_Examples.ipynb).
 
 Environment setup:
 
@@ -458,13 +458,89 @@ conda activate btc
 Code summary:
 
 ```python
+### -- 0. Connect to Node via RPC
+
+import os
+from dotenv import load_dotenv
+from bitcoin.rpc import RawProxy
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Retrieve environment variables
+rpc_user = os.getenv('RPC_USER')
+rpc_password = os.getenv('RPC_PASSWORD')
+rpc_ip = os.getenv('BTC_NODE_IP')
+rpc_port = os.getenv('RPC_PORT')
+
+# Create the connection URL
+# We pass username + PW here!
+rpc_url = f"http://{rpc_user}:{rpc_password}@{rpc_ip}:{rpc_port}"
+
+# Create a connection to the Bitcoin Core node
+try:
+    p = RawProxy(service_url=rpc_url)
+except Exception as e:
+    print(f"An error occurred: {e}")
+
+### -- 1. Get number of blocks so far
+
+# Run the getblockchaininfo command, store the resulting data in info
+info = p.getblockchaininfo()
+# Retrieve the 'blocks' element from the info
+print(info['blocks']) # 851989
+
+### -- 2. Get outputs of a transaction
+
+# Alice's transaction ID
+txid = "466200308696215bbc949d5141a49a4138ecdfdfaa2a8029c1f9bcecd1f96177"
+
+# First, retrieve the raw transaction in hex
+raw_tx = p.getrawtransaction(txid)
+
+# Decode the transaction hex into a JSON object
+decoded_tx = p.decoderawtransaction(raw_tx)
+
+# Retrieve each of the outputs from the transaction
+for output in decoded_tx['vout']:
+    print(output['scriptPubKey']['address'], output['value'])
+    # bc1p8dqa4wjvnt890qmfws83te0v3qxzsfu7ul63kp7u56w8qc0qwp5qv995qn 0.00020000
+    # bc1qwafvze0200nh9vkq4jmlf4sy0tn0ga5w0zpkpg 0.00075000
+
+### -- 3. Get all the outputs of all transactions in a block
+
+# The block height where Alice's transaction was recorded
+blockheight = 775072
+
+# Get the block hash of the block at the given height
+blockhash = p.getblockhash(blockheight)
+
+# Retrieve the block by its hash
+block = p.getblock(blockhash)
+
+# Element tx contains the list of all transaction IDs in the block
+transactions = block['tx']
+
+block_value = 0
+
+# Iterate through each transaction ID in the block
+for txid in transactions:
+    tx_value = 0
+    # Retrieve the raw transaction by ID
+    raw_tx = p.getrawtransaction(txid)
+    # Decode the transaction
+    decoded_tx = p.decoderawtransaction(raw_tx)
+    # Iterate through each output in the transaction
+    for output in decoded_tx['vout']:
+        # Add up the value of each output
+        tx_value = tx_value + output['value']
+
+    # Add the value of this transaction to the total
+    block_value = block_value + tx_value
+
+print("Total value in block: ", block_value) # 5863.00566521
 
 ```
-
-#### Examples with cURL
-
-TBD.
-
 
 ## Chapter 4: Keys, Addresses
 
