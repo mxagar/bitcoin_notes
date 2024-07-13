@@ -2,11 +2,7 @@
 
 This repository contains my **personal notes** collected while studying different aspects of Bitcoin.
 
-The most important source of information are these **technical books**:
-
-- "Mastering Bitcoin", Antonopoulos, O'Reilly: [`bitcoin_antonopoulos/`](./bitcoin_antonopoulos/).
-- "Mastering the Lightning Network", Antonopoulos et al., O'Reilly: [`bitcoin_lightning_antonopoulos/`](./bitcoin_lightning_antonopoulos/).
-- "Programming Bitcoin", Song, O'Reilly: [`bitcoin_programming_song/`](./bitcoin_programming_song/).
+The most important source of information is the **technical book** "Mastering Bitcoin", Antonopoulos, O'Reilly: [`bitcoin_antonopoulos/`](./bitcoin_antonopoulos/).
 
 Additionally, I have also covered other topics from different sources:
 
@@ -17,6 +13,13 @@ See also:
 
 - Some financial analyses of mine, just for fun: [mxagar/crypto_analysis](https://github.com/mxagar/crypto_analysis).
 - Invaluable Bitcoin educational resources from [Jameson Lopp](https://www.lopp.net).
+
+<!--
+Other technical books:
+
+- "Mastering the Lightning Network", Antonopoulos et al., O'Reilly: [`bitcoin_lightning_antonopoulos/`](./bitcoin_lightning_antonopoulos/).
+- "Programming Bitcoin", Song, O'Reilly: [`bitcoin_programming_song/`](./bitcoin_programming_song/).
+-->
 
 Mikel Sagardia, 2020.  
 No guarantees.
