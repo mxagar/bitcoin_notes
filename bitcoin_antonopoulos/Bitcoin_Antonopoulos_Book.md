@@ -2,7 +2,7 @@
 
 These a re my notes of the book **"Mastering Bitcoin", by A. Antonopoulos (O'Reilly)**.
 
-I have extended the content of the book with my own tests, e.g., using a toy node.
+Although I follow the general structure of the book, I have modified/extended some sections, e.g., using `bitcoin-cli` in a toy node, adding self-made diagrams, re-framing some explanations, etc.
 
 Mikel Sagardia, 2020.  
 No guarantees.
@@ -62,14 +62,61 @@ Better use a **local bitcoin explorer** for our transactions, e.g., the one from
 
 ![Block explorer](./assets/block_explorer.png)
 
-If we have access to a bitcoin node (e.g., with [MyNode](https://mynodebtc.github.io)), we can check the transaction info as follows:
+### Bitcoin Client 101
+
+If we have access to a bitcoin node (e.g., with [MyNode](https://mynodebtc.github.io)) we can interact with the Bitcoin client.
+
+To see how to set up a node, check the co-located guide [`../bitcoin_practical/Bitcoing_Practical_Guide.md`](../bitcoin_practical/Bitcoing_Practical_Guide.md).
+
+Basic commands:
 
 ```bash
 # Log in via SSH; we might need to use the local IP
+# The IP can be obtained, e.g., with Angry IP Scanner
 ssh admin@mynode.local
 
+# Provides information about the current state of the blockchain
+bitcoin-cli getblockchaininfo
 
+# Returns information about the network and the connected peers
+bitcoin-cli getnetworkinfo
+
+# Returns data about each connected network node
+bitcoin-cli getpeerinfo
+
+# Provides mining-related information such as hashrate, difficulty, etc.
+bitcoin-cli getmininginfo
+
+# Retrieves information about a specific block by its hash
+bitcoin-cli getblock <blockhash>
+
+# Gets the raw transaction data for a given transaction ID
+# true: decode hexstring
+bitcoin-cli getrawtransaction <txid> true
+
+# Get mempool info: general stats
+bitcoin-cli getmempoolinfo
+
+# List Transactions in Mempool: all the txids waiting to be mined
+bitcoin-cli getrawmempool
+
+# Get Detailed Information on a Specific Mempool Transaction
+bitcoin-cli getmempoolentry <txid>
+
+# Provides information about the wallet, including balance, etc.
+bitcoin-cli getwalletinfo
+
+# Generates a new Bitcoin address for receiving payments
+bitcoin-cli getnewaddress
+
+# Lists the most recent transactions in the wallet
+bitcoin-cli listtransactions
+
+# Lists unspent transaction outputs in the wallet
+bitcoin-cli listunspent
 ```
+
+There are much more commands, among others, we can interact with the wallet programmatically: receive, send, etc.
 
 ### Transactions
 
@@ -84,28 +131,28 @@ Transactions consist of inputs and outputs:
 - Spending = Signing a transaction that transfers value to a new address.
 - Inputs contain proof of ownership, independently verifiable.
 
+![Transactions as double-entry bookkeeping - Antonopoulos](./assets/mbc3_0202.png)
+
 #### Transaction Chains
 
-- The input values in a transaction know the transaction they come from
+- The input values in a transaction know the transaction they come from.
 - Previous outputs are divided into:
-  - Spent: Fractions that are used as inputs for successive transactions
-  - Unspent: Fractions that are not used (by now) = UTXO
-- Wallet keys basically unlock the transaction outputs of previous transactions
+  - **Spent: Fractions that are used as inputs for successive transactions.**
+  - **Unspent: Fractions that are not used (by now) = UTXO.**
+- Wallet keys basically unlock the transaction outputs of previous transactions.
 
 #### Making Change
 
-- When value is transferred from an address (input) to another (output)
-- If the coins in the input address don't match the transferred value + fees, change is generated and returned to the input wallet, but maybe to a new address
-  - That's the change address
+When value is transferred from an address (input) to another (output), if the coins in the input address don't match the transferred value + fees, change is generated and returned to the input wallet, but maybe to a new address. That's the *change address*
 
 #### Common Transaction Forms
 
-1. **Simple Payment**
+1. **Simple Payment**: Alice sends to Bob from an address which contains a large amount.
    - Input 0: From Alice, signed by Alice
    - Output 0: To Bob
    - Output 1: To Alice: Change
 
-2. **Aggregated Inputs**
+2. **Aggregated Inputs**: Alice transfers to Bob a large amount using many addresses with small amounts.
    - Inputs 0 - N: From Alice, signed by Alice
    - Output 0: To Bob
 
@@ -113,76 +160,181 @@ Transactions consist of inputs and outputs:
    - Input 0: From Alice, signed by Alice
    - Outputs 0 - N: To several wallets/addresses
 
-Great! Let's continue with the next sections:
+In all those cases, the *fees* are omitted for clarity, but always:
+
+    Inputs = Outputs + Fees
 
 ### Constructing a Transaction
 
 A wallet needs:
+
 1. Destination (public) address
 2. Amount
 
-To construct the transaction, which can even happen offline!
+to construct the transaction, which **can even happen offline!**
+
+Example of a transaction structure, as returned by the Bitcoin client:
+
+```bash
+# Same previous transaction by Antonopoulos
+bitcoin-cli getrawtransaction 0627052b6f28912f2703066a912ea577f2ce4da4caa5a5fbd8a57286c345c2f2 true
+```
+
+```json
+{
+  "txid": "0627052b6f28912f2703066a912ea577f2ce4da4caa5a5fbd8a57286c345c2f2",
+  "hash": "0627052b6f28912f2703066a912ea577f2ce4da4caa5a5fbd8a57286c345c2f2",
+  "version": 1,
+  "size": 258,
+  "vsize": 258,
+  "weight": 1032,
+  "locktime": 0,
+  "vin": [
+    {
+      "txid": "7957a35fe64f80d234d76d83a2a8f1a0d8149a41d81de548f0a65a8a999f6f18",
+      "vout": 0,
+      "scriptSig": {
+        "asm": "3045022100884d142d86652a3f47ba4746ec719bbfbd040a570b1deccbb6498c75c4ae24cb02204b9f039ff08df09cbe9f6addac960298cad530a863ea8f53982c09db8f6e3813[ALL] 0484ecc0d46f1918b30928fa0e4ed99f16a0fb4fde0735e7ade8416ab9fe423cc5412336376789d172787ec3457eee41c04f4938de5cc17b4a10fa336a8d752adf",
+        "hex": "483045022100884d142d86652a3f47ba4746ec719bbfbd040a570b1deccbb6498c75c4ae24cb02204b9f039ff08df09cbe9f6addac960298cad530a863ea8f53982c09db8f6e381301410484ecc0d46f1918b30928fa0e4ed99f16a0fb4fde0735e7ade8416ab9fe423cc5412336376789d172787ec3457eee41c04f4938de5cc17b4a10fa336a8d752adf"
+      },
+      "sequence": 4294967295
+    }
+  ],
+  "vout": [
+    {
+      "value": 0.01500000,
+      "n": 0,
+      "scriptPubKey": {
+        "asm": "OP_DUP OP_HASH160 ab68025513c3dbd2f7b92a94e0581f5d50f654e7 OP_EQUALVERIFY OP_CHECKSIG",
+        "desc": "addr(1GdK9UzpHBzqzX2A9JFP3Di4weBwqgmoQA)#ykrtxd0a",
+        "hex": "76a914ab68025513c3dbd2f7b92a94e0581f5d50f654e788ac",
+        "address": "1GdK9UzpHBzqzX2A9JFP3Di4weBwqgmoQA",
+        "type": "pubkeyhash"
+      }
+    },
+    {
+      "value": 0.08450000,
+      "n": 1,
+      "scriptPubKey": {
+        "asm": "OP_DUP OP_HASH160 7f9b1a7fb68d60c536c2fd8aeaa53a8f3cc025a8 OP_EQUALVERIFY OP_CHECKSIG",
+        "desc": "addr(1Cdid9KFAaatwczBwBttQcwXYCpvK8h7FK)#e6ft626y",
+        "hex": "76a9147f9b1a7fb68d60c536c2fd8aeaa53a8f3cc025a888ac",
+        "address": "1Cdid9KFAaatwczBwBttQcwXYCpvK8h7FK",
+        "type": "pubkeyhash"
+      }
+    }
+  ],
+  "hex": "0100000001186f9f998a5aa6f048e51dd8419a14d8a0f1a8a2836dd734d2804fe65fa35779000000008b483045022100884d142d86652a3f47ba4746ec719bbfbd040a570b1deccbb6498c75c4ae24cb02204b9f039ff08df09cbe9f6addac960298cad530a863ea8f53982c09db8f6e381301410484ecc0d46f1918b30928fa0e4ed99f16a0fb4fde0735e7ade8416ab9fe423cc5412336376789d172787ec3457eee41c04f4938de5cc17b4a10fa336a8d752adfffffffff0260e31600000000001976a914ab68025513c3dbd2f7b92a94e0581f5d50f654e788acd0ef8000000000001976a9147f9b1a7fb68d60c536c2fd8aeaa53a8f3cc025a888ac00000000",
+  "blockhash": "0000000000000001b6b9a13b095e96db41c4a928b97ef2d944a9b31b2cc7bdc4",
+  "confirmations": 574625,
+  "time": 1388185914,
+  "blocktime": 1388185914
+}
+```
 
 A wallet connected to a full node knows about all the unspent coins/output; therefore, they can quickly verify any incoming transaction!
 
-Outputs are created like scripts:
-- Anyone who can provide proof/signature of having the destination wallet receives the coins
+**Outputs are created like scripts: Anyone who can provide proof/signature of having the destination wallet receives the coins.**
 
-The peer-to-peer Bitcoin network propagates the transactions:
-- Any node that receives and confirms a transaction immediately forwards it to the nodes connected to it
+The peer-to-peer Bitcoin network propagates the transactions: Any node that receives and confirms a transaction immediately forwards it to the nodes connected to it.
 
-**COMMON MISCONCEPTION:** That transactions must be confirmed waiting 10 minutes for a new block or 60 minutes (6 blocks)
-- Confirmations ensure that the transaction has been accepted by the whole network
-- But, if A pays to B in front of him/her and B receives the transaction notification, there's no need to wait
-- Confirmations are rather for the rest of the network or maybe for huge values
+**COMMON MISCONCEPTION:** transactions must be confirmed waiting 10 minutes for a new block or 60 minutes (6 blocks):
+
+- Confirmations ensure that the transaction has been accepted by the whole network.
+- But, if A pays to B in front of him/her and B receives the transaction notification, there's no need to wait.
+- Confirmations are rather for the rest of the network or maybe for huge values.
+
+### Mempool: Memory Pool
+
+Key ideas:
+
+- After a transaction is carried out, it is propagated; each node validates it and it lands into the **mempool (Memory Pool)**, waiting to be confirmed/verified, i.e., waiting to be solidified into a block = mined.
+  - **Unverified transaction = unconfirmed transaction** = Transaction that has not been solidified into a block.
+  - When a transaction is unverified, it doesn't mean it is not **valid**! Transactions must pass several validation checks before being added to a node's mempool: verifying digital signatures, ensuring that inputs are valid and not double-spent, and checking that the transaction follows the consensus rules. **After validation, the transaction is broadcast to the node's peers**, which will then repeat the process, propagating the transaction through the network.
+- Each Bitcoin node maintains its own mempool, so it is not a single, universal pool shared among all nodes.
+  - However, there is significant overlap because nodes typically share and propagate transactions they receive, leading to many nodes having similar contents in their mempools.
+- To build a block, the node picks transactions from the mempool
+  - Transactions are prioritized, among others, according to the fees paid by the senders.
+  - The sender selects the amount of fees they are ready to pay.
+  - Therefore, since we have a limited block size, if the mempool is full, large fees are going to be promoted.
+
+Typical sizes:
+
+- Size of a transaction: `[250, 500] Bytes`; if complex (many inputs & outputs): `1,000 bytes`.
+  - However, since the SegWit, transactions are measured in **virtual bytes** or `vBytes`, being a `vByte` slightly less than a `Byte`. `1 vByte = 1 byte` for non-SegWit transactions. For SegWit transactions, the weight is the sum of the non-witness data and one-quarter of the witness data.
+- Fees of a transaction
+  - Low Priority: 1-10 sats/byte.
+  - Medium Priority: 20-50 sats/byte.
+  - High Priority: 50-100+ sats/byte.
+  - For a transaction of 250 bytes and a medium fee rate of 30 sats/byte, the fee would be around 7,500 satoshis (0.000075 BTC).
+- Size of a block
+  - The maximum block size is 1 MB (1,000,000 bytes) for non-SegWit transactions.
+  - With SegWit, the effective block size limit is 4 MB in weight units (WU).
+- Number of transactions in a block
+  - Large, complex: 1,000 to 1,500
+  - Small, SegWit: 2,500-3,000
+- Number of transactions waiting in the mempool
+  - During low activity periods: 1,000-5,000 transactions
+  - During high activity or network congestion: 10,000-100,000+
+
+![Mempool](./assets/mempool.jpg)
+
+![Mempool transactions](./assets/mempol_transactions.jpg)
 
 ### Bitcoin Mining
 
-- Transactions are propagated through the network and aggregated into blocks, which are included in the blockchain = this is through mining
+- Transactions are propagated through the network and aggregated into blocks, which are included in the blockchain -> this is through mining.
+- After a transaction is propagated, each node validates it and it lands into the **mempool**, waiting to be confirmed/verified, i.e., waiting to be solidified into a block = mined.
+- Transactions are prioritized, among others, according to the fees paid by the senders.
+- Each mining node creates a block to be added by stacking:
+  1. Next prioritized transactions.
+  2. A reward transaction for itself: aggregated fees for prioritized transactions + new Bitcoin issued.
+  3. A fingerprint of the previous block
+- And then start guessing a puzzle which is:
+  - **Very difficult to guess.**
+  - **But very easy to verify.**
+  - So, like a sudoku, it's asymmetrically hard to solve/verify.
 
-- There is a pool of unverified transactions where all new transactions land
-  - Transactions are prioritized, among others, according to the fees paid by the senders
-  - Each mining node creates a block to be added by stacking:
-    1. Next prioritized transactions
-    2. A reward transaction for itself: aggregated fees for prioritized transactions + new Bitcoin issued
-    3. A fingerprint of the previous block
-  - And then start guessing a puzzle which is:
-    - Very difficult to guess
-    - But very easy to verify
-    - So, like a sudoku, it's asymmetrically hard to solve/verify
+Therefore:
 
-So:
-- Every 10 minutes, all nodes start competing
-- Only the node which first guesses the game writes the block and receives the reward
-- When a node makes the guess, it notifies its peers, and they verify it and start competing for the next block
+- Every 10 minutes, all nodes start competing.
+- Only the node which first guesses the game writes the block and receives the reward.
+- When a node makes the guess, it notifies its peers, and they verify it and start competing for the next block. That way, they have the incentive to accept the correct mined block and start the new race as soon as possible.
 
-The game/value to be guessed is called Proof-of-Work (PoW):
-- The header of the block + random number are hashed to obtain a pattern
-- The random number is the sought value!
+The game/value to be guessed is called **Proof-of-Work (PoW)**:
 
-The difficulty of the game is adjusted depending on the nodes in the network so that the value can be guessed every 10 minutes (= a block created every 10 minutes)
+- The header of the block + random number are hashed to obtain a pattern.
+- **The random number is the sought value!**
+
+The difficulty of the game is adjusted every 2 weeks depending on the nodes in the network so that the value can be guessed every 10 minutes (= a block is created every 10 minutes).
 
 **Nowadays:**
-- ASICs are used: Hardware in which mining algorithms are printed
-- Miners join in mining pools: many miners who share rewards
+
+- ASICs are used: Hardware in which mining algorithms are printed.
+- Miners join in mining pools: many miners who share rewards.
 
 **Terms:**
-- **Block Height:** Number of blocks since genesis block until block with observed transaction
-- **Block Depth:** Number of blocks from observed block until very last added
+
+- **Block Height:** Number of blocks since genesis block until block with observed transaction.
+- **Block Depth:** Number of blocks from observed block until very last added.
 
 **Some Insights:**
-- As blocks pile on each other, they become exponentially harder to falsify/reverse -> more trusted
-  - By convention, a block with 6+ confirmations is irrevocable because it would require much energy to invalidate and recalculate the 6 blocks
-- Blocks can be written into the blockchain if Proof-of-Work is shown
-- Writing a block means getting the reward
-- Therefore, we do not need a central authority: distributed nodes compete and respect the easy-to-verify rules
+
+- As blocks pile on each other, they become exponentially harder to falsify/reverse -> more trusted.
+  - By convention, a block with 6+ confirmations is irrevocable because it would require much energy to invalidate and recalculate the 6 blocks.
+- Blocks can be written into the blockchain only if Proof-of-Work is shown.
+- Writing a block means getting the reward.
+- **Therefore, we do not need a central authority: distributed nodes compete and respect the easy-to-verify rules.**
+
+![Bitcoin Summary](./assets/bitcoin_summary.jpeg)
 
 ### Spending the Transaction
 
-**Key Ideas:**
-- Each Bitcoin client can verify a transaction as valid
-- Full nodes can track the source of funds until the moment in which they were generated
-- SPV nodes (Simplified Payment Verification, or lightweight) can confirm that the transaction is in the blockchain and has several blocks mined after it
+Key Ideas:
+
+- Each Bitcoin client can verify a transaction as valid.
+- Full nodes can track the source of funds until the moment in which they were generated.
+- SPV nodes (Simplified Payment Verification, or lightweight) can confirm that the transaction is in the blockchain and has several blocks mined after it.
 
 ## Chapter 3: Bitcoin Core: The Reference Implementation
 
