@@ -404,6 +404,13 @@ bitcoin-cli listtransactions
 
 # Lists unspent transaction outputs in the wallet
 bitcoin-cli listunspent
+
+# Private key is generated and address returned
+bitcoin-cli getnewaddress # <address>
+# If we input our generated address, wallet is opened and its private key is returned
+bitcoin-cli dumpprivkey <address>
+# Note: we cannot obtain the private key of an arbitrary address,
+# but open the wallet and return the private key
 ```
 
 There are much more commands, among others, we can interact with the wallet programmatically: receive, send, etc.
@@ -544,112 +551,143 @@ print("Total value in block: ", block_value) # 5863.00566521
 
 ## Chapter 4: Keys, Addresses
 
-**Bitcoin Communication & Data Are Not Encrypted**
-- We have three main elements:
+**Important note**: Bitcoin communication & data are not encrypted!
+
+- We have three main elements which establish the ownership of bitcoins:
   1. **Digital or Private Keys**
-     - Not stored on the network, but in wallets
-     - Used to create identity signatures: we can spend satoshis linked to an address if we show the signature of the private key
-     - Used to create public keys
+     - Not stored on the network, but in the wallets.
+     - Used to create identity signatures: we can spend *satoshis* linked to an address if we show the signature of the private key.
+     - Used to create public keys.
      - They can be generated and managed without access to the blockchain!
-     - So, used to spend funds, it's like the PIN
+     - So, used to spend funds, it's like the PIN.
   2. **Public Keys**
-     - Created from the private key: easy to create and verify, but impossible to get original private key
-     - Used to receive funds
+     - Created from the private key: easy to create and verify, but impossible to get original private key.
+     - Used to receive funds.
   3. **Addresses**
-     - Hashed public keys
-     - Usually, the elements used to send/receive
-     - Behind an address we can have a wallet or a script
+     - Hashed public keys.
+     - Usually, the elements used to send/receive.
+     - Behind an address we can have a wallet or a script.
 
-**Public Key Cryptography** (Not in the Book)
-- [Public Key Cryptography Explanation](https://www.youtube.com/watch?v=AQDCe585Lnc&vl=en)
+### Public Key Cryptography** (Not in the Book)
 
-**Two Main Types of Encryptions:**
+[Public Key Cryptography Explanation](https://www.youtube.com/watch?v=AQDCe585Lnc&vl=en)
+
+We have two main types of encryptions approaches:
+
 1. **Symmetric**
-   - Create a key/password used to encrypt content
-   - Same key used to decrypt content
-   - Issue: sharing the key can be unfeasible or dangerous
+   - Create a key/password used to encrypt content.
+   - Same key used to decrypt content.
+   - Issue: sharing the key can be unfeasible or dangerous.
 2. **Asymmetric**
-   - Create a key pair: private and public key
-     - Private key is kept private, never shared
-     - Public key is shared with all peers
-   - If a peer wants to send content, they encrypt it with the public key
-   - Receiver decrypts it with the linked private key
+   - Create a key pair: private and public key.
+     - Private key is kept private, never shared.
+     - Public key is shared with all peers.
+   - If a peer wants to send content, they encrypt it with the public key of the receiver.
+   - Receiver decrypts it with the linked private key.
 
-**Notes on Asymmetric Encryption:**
+Further notes on **Asymmetric Encryption**:
+
 - Key private-public key pair is linked, but:
-  - Derive public key from the private one
-  - Cannot obtain the private key from the public
-- Private key decrypts content encrypted only by its linked public key
+  - We derive the public key from the private one.
+  - We cannot obtain the private key from the public one.
+- Private key decrypts content encrypted only by its linked public key.
 
-**Applications Using Asymmetric Encryption:**
+Applications using **Asymmetric Encryption**:
+
 1. **HTTPS (SSL)**
-   - Web owner pays an authority to keep a private key of the website
-   - When visiting the web, the browser gets the public key of the web and the address of the authority
-   - The web provides a message from the authority encrypted with the public key
-   - Authority decrypts the message; if correct, the web's identity is verified
+   - Web owner pays an authority to keep a private key of the website.
+   - When visiting the web, the browser gets the public key of the web and the address of the authority.
+   - The web provides a message from the authority encrypted with the public key.
+   - Authority decrypts the message; if correct, the web's identity is verified.
 2. **Bitcoin**
-   - Verify ownership of funds by decrypting a message encrypted with the address/public key
+   - Verify ownership of funds by decrypting a message encrypted with the address/public key.
 3. **SSH**
-   - Similar to HTTPS to verify identities
+   - Similar to HTTPS to verify identities.
 4. **PGP or GPG**
-   - Pretty Good Privacy: asymmetric encryption for emails/messages
-   - Install on Thunderbird or use GPG Keychain application
-   - Alternatively, use command line tool to do everything manually
+   - Pretty Good Privacy: asymmetric encryption for emails/messages.
+   - Install on Thunderbird or use GPG Keychain application.
+   - Alternatively, use command line tool to do everything manually.
      - [GPG Command Line Guide](https://blog.ghostinthemachines.com/2015/03/01/how-to-use-gpg-command-line/)
      - Install with:
-       - `brew install gnupg`
-       - `sudo apt-get install gnupg`
-       - `gpg --gen-key`
-       - ...
+        ```bash
+        brew install gnupg
+        sudo apt-get install gnupg
+        gpg --gen-key
+        ...
+        ```
 
-**Private & Public Keys:**
-- Private key (k) -> (elliptic curve multiplication) -> Public key (K) -> (hashing) -> Bitcoin Address (A)
-  - Can only go one way, not back
+### Private & Public Keys
 
-**Main Idea:**
-- Spend signature can be generated only with the private key but can be verified by the public key available to anyone
-- Private key is a random number of 256 bits: 2^(256)
+The process to obtain an address from a private key is as follows:
+
+    Private key (k) -> (elliptic curve multiplication) -> Public key (K) -> (hashing) -> Bitcoin Address (A)
+
+It **can only go one way, not back!**
+
+Key ideas:
+
+- We need a (spend) signature to unlock the funds associated to an address.
+- That (spend) signature can be generated only with the private key but can be verified by the public key available to anyone.
+- Private key is a random number of 256 bits: `2^(256)`
   - Usually encoded in:
     - Hexadecimal: base 16 = base 4 bits = 2^4
     - Base58: base 64 - 6 characters difficult to distinguish
 
-**How to Obtain:**
-- `bitcoin-cli getnewaddress`: Private key is generated and address returned
-  - `<address>`
-- `bitcoin-cli dumpprivkey <address>`: If we input our generated address, wallet is opened and its private key is returned
-  - Note: cannot obtain the private key of an arbitrary address, but open the wallet and return the private key
+How to obtain the private key of an address using `bicoin-cli`:
 
-**Public Keys Created by Elliptic Curve Multiplication:**
+```bash
+# Private key is generated and address returned
+bitcoin-cli getnewaddress # <address>
+# If we input our generated address, wallet is opened and its private key is returned
+bitcoin-cli dumpprivkey <address>
+# Note: we cannot obtain the private key of an arbitrary address,
+# but open the wallet and return the private key
+```
+
+### Public Keys Created by Elliptic Curve Multiplication
+
+As introduced, public keys are generated from private keys; that is done via elliptic curve multiplication, and the process is irreversible (i.e., we cannot obtain back the private key from the public one).
+
+Key ideas:
+
 - Elliptic curve multiplication is irreversible
-- Elliptic curve: y^2 = x^3 + 7 discretized
-  - Symmetric on x
-  - Coordinates (x, y) each a possible private key of all 2^256
-  - Addition of points P1 & P2 of the curve:
-    - Draw a line between P1 & P2 and where it intersects, we have P3'
-    - Reflect its y value, we have P3
+- Elliptic curve: `y^2 = x^3 + 7` discretized
+  - Symmetric on `x`.
+  - Coordinates `(x, y)`: each point is a possible key of all possible `2^256` (how a 1D number is mapped to 2D is below).
+  - Addition operation of points `P1` & `P2` of the curve is defined as follows:
+    - Draw a line between `P1` & `P2` and where it intersects, we have `P3'`.
+    - Reflect its y value, we have `P3`, the result.
   - Multiplication is defined as a sum:
-    - k * P = P + P + P + ..., k times
-    - Adding a point P to itself is basically throwing the tangent line and reflecting the intersection point
+    - `k * P = P + P + P + ...`, k times
+    - Adding a point `P` to itself is basically throwing the tangent line and reflecting the intersection point.
   - Public key (K) created by elliptic curve multiplication:
-    - K = G * k
-      - K: Public key
-      - G: Generator point, same and known to everyone
+    - `K = G * k`
+      - K: Public key (result)
+      - G: Generator point `(x,y)`, same and known to everyone
       - k: Private key
 
-**Bitcoin Addresses:**
+![Elliptic curve multiplication - Antonopoulos](./assets/mbc3_0404.png)
+
+Then, **Bitcoin Addresses** are obtained from the public key:
+
 - Bitcoin address can be:
   - Owner of a private key
   - Payment script
-- Address created by double-hashing the public key with SHA256 and RIPEMD160:
-  - A = RIPEMD160(SHA256(K))
+- Address created by double-hashing the public key with the algorithms `SHA256` and `RIPEMD160`:
+  ````
+  A = RIPEMD160(SHA256(K))
+  ```
 
-**Encoding:**
-- Base58: Base64 - 6 symbols difficult to distinguish = 0-9, a-z, A-Z - (0, O, l, I)
+Notes on the **encoding**:
+
+- Base58: Base64 - 6 symbols difficult to distinguish = `0-9, a-z, A-Z - (0, O, l, I)`
 - Base58Check: Base58 with additional checksum at the end; prefix to denote it's a Base58Check address
   - Prefix 1: Bitcoin address
   - Prefix 3: Payment address
 
-**Key Formats:**
+## Key Formats
+
+<!-- HERE -->
 
 1. **Private Key Formats:**
    - Raw: 32 bytes
