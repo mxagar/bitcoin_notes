@@ -687,9 +687,7 @@ Notes on the **encoding**:
   - Prefix 1: Bitcoin address
   - Prefix 3: Payment address
 
-### Key Formats
-
-<!-- HERE -->
+### Key Formats
 
 **Private Key Formats:**
 
@@ -758,78 +756,97 @@ Notes on the **encoding**:
 
 ## Chapter 5: Wallets
 
-**Wallets are the primary user interface but their main goal is to safely keep private keys**
-- Wallets do not contain bitcoins
-- Bitcoins are mere transaction outputs on the blockchain
-- Wallets just contain the keys to spend them
+Wallets are the primary user interface; their main goal is to safely keep private keys.
 
-**Two Main Types of Wallets:**
+- Wallets do not contain bitcoins.
+- Bitcoins are mere transaction outputs on the blockchain.
+- Wallets just contain the keys to spend them.
+
+There are two main types of wallets:
 
 1. **Non-deterministic Wallets:**
-   - Just random private keys created and stored
-   - Not common anymore, discouraged
+   - Just random private keys created and stored.
+   - Not common anymore, discouraged.
 
 2. **(Hierarchical) Deterministic Wallets (HD):**
-   - Contain private keys derived from a seed, using one-way hashing
-   - With the seed, all private keys can be generated (which are many)
+   - They contain private keys derived from a seed, using one-way hashing.
+   - With the seed, all private keys can be generated (which are many).
 
-**HD Wallets (BIP-32, BIP-44) = Hierarchical Deterministic Wallets:**
-- All private keys contained by the wallet derived from a seed in a tree structure
+### HD Wallets (BIP-32, BIP-44) = Hierarchical Deterministic Wallets
+
+Key ideas:
+
+- All private keys contained by the wallet derived from a seed in a tree structure.
   - Each child of a parent node becomes a parent that can create children, and so on
-- **Advantages:**
+- Advantages:
   - Tree structure can be used to give meaning to subsets/branches, e.g., departments, etc.
-  - **VERY IMPORTANT:** Possible to create the public keys of the tree without having the private keys
+  - **VERY IMPORTANT:** It is possible to create the public keys of the tree without having the private keys!
+
+![HD Wallets - Antonopoulos](./assets/mbc3_0503.png)
 
 **Mnemonic Codes Used to Generate 512-bit Seeds (BIP-39):**
-- Mnemonic codes are easy-to-remember words
+
+Usually, to create the seed, we use a fixed set of words:
+
+- Mnemonic codes are easy-to-remember words.
 - 12-24 English words, each from a dictionary of 2024 words
   - 2024 = 2^11 = 11 bits
-- When we start/create a wallet with the latest standard, it generates a RANDOM bit-string encoded in 12 words
-- From these 12 words, we can create an endless number of private and public keys
+- When we start/create a wallet with the latest standard, it generates a RANDOM bit-string encoded in 12 words.
+- From these 12 words, we can create an endless number of private and public keys.
+- Mnemonic words + *salt* are stretched using a special cryptographic function up to a 512-bit seed
+  - Salt is the string `"mnemonic"` + *optional passphrase*, adding extra security.
+    - Example: Write down the 12 words for backup, but not the passphrase.
+- **Recall:** A private key is `256-bits (2^256) <<< 512-bits (2^512)`
 
-**From Mnemonic Codes to Seed:**
-- Mnemonic words + salt are stretched using a special cryptographic function up to a 512-bit seed
-  - Salt is the string "mnemonic" + optional passphrase, adding extra security
-    - Example: Write down the 12 words for backup, but not the passphrase
-- **Recall:** A private key is 256-bits (2^256) <<< 512-bits (2^512)
+**Creating an HD Wallet from the Seed:** 
 
-**Creating an HD Wallet from the Seed:**
-- Seed is hashed to a 512-bit string:
-  - Left 256 bits: Master private key (m)
-  - Right 256 bits: Master chain code (c)
-  - Chain code introduces entropy when creating child keys from parent keys
+Seed is hashed to a 512-bit string and
 
-**Creating Child Keys:**
-- Each child key created with:
-  - Parent private/public key (256 bits)
-    - If private, private child key created; public otherwise
-  - Parent chain code (256 bits)
-  - Index number of 32 bits: 0, 1, ... 2^32
-  - All three are mixed and hashed to create children keys
-  - Index allows to create 2 x 2^31 children keys
-    - Half are normal derivation keys
-    - The other half hardened keys
+- Left 256 bits: Master private key (m).
+- Right 256 bits: Master chain code (c).
+- Chain code introduces entropy when creating child keys from parent keys.
 
-**Extended Keys = Private/Public Key + Chain Code:**
-- Public: Start with xpub...
-- Private: Start with xpriv...
-- Can create all possible children keys alone
+**Creating Child Keys:** 
 
-**IMPORTANT:**
+Each child key is created with:
+
+- Parent private/public key (256 bits)
+  - If private, private child key created; public otherwise
+- Parent chain code (256 bits)
+- Index number of 32 bits: `0, 1, ... 2^32`
+- All three are mixed and hashed to create children keys
+- Index allows to create `2 x 2^31` children keys
+  - Half are normal derivation keys: `2^31 = 2147 million`.
+  - The other half hardened keys: `2^31 = 2147 million`.
+
+**Extended Keys:**
+
+Extended keys are the combination of the private/public key + chain code and they can create all possible children keys alone!
+
+- Public: Start with `xpub...`
+- Private: Start with `xpriv...`
+
+IMPORTANT properties of the extended keys:
+
 - Possible to create public child keys without private parent keys, just with the public parent keys!
-  - Be careful: Entire transaction history becomes public
+  - Be careful: Entire transaction history becomes public when we publish provide the `xpub`.
   - Interesting applications:
-    1. Upload xpub to a web/e-commerce application and use it without private keys online!
+    1. Upload `xpub` to a web/e-commerce application and use it without private keys online!
     2. Have an offline paper wallet and generate public keys for it without putting the wallet online!
-- Hardware wallets never export private keys unless explicitly done
+- Hardware wallets never export private keys unless explicitly done.
 
 **Hardened Child Keys:**
-- To break the connection, parent private key used to derive child public key
-- Possible to have an xpub branch not connected to any other -> more security and privacy
-- Hardened key derivation creates a gap
-  - With the 32-bit index, create 2^32 children keys: 2 x 2^31
-    - 0 to 2^31-1: Normal derivation children keys
-    - 2^31 to 2^32 - 1: Hardened children keys
+
+In order to break the connection, the parent private key is used to derive the child public key.
+This way, we can have an `xpub` branch that is not connected to any other; that means more security and privacy.
+Therefore, hardened key derivation creates a gap.
+
+With the 32-bit index, we create 2^32 children keys: 2 x 2^31:
+
+- 0 to 2^31-1: Normal derivation children keys
+- 2^31 to 2^32 - 1: Hardened children keys
+
+<!-- HERE -->
 
 **HD Wallet Identifier Paths: Keys Denoted with a Path:**
 - M/x/y/z: Public keys derived from master public key
