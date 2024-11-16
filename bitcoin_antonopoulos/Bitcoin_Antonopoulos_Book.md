@@ -846,23 +846,37 @@ With the 32-bit index, we create 2^32 children keys: 2 x 2^31:
 - 0 to 2^31-1: Normal derivation children keys
 - 2^31 to 2^32 - 1: Hardened children keys
 
-<!-- HERE -->
-
 **HD Wallet Identifier Paths: Keys Denoted with a Path:**
-- M/x/y/z: Public keys derived from master public key
-- m/x/y/z: Private keys derived from master private key
-  - m/0: First child private key of the master private key
-  - m/0/1: Second child of the first child
-  - m/0'/0: m/0': Hardened child
+
+Keys in a HD wallet are identified using a path naming convention, separating tree levels by `/`:
+
+- `M/x/y/z`: Public keys derived from master *public* key
+- `m/x/y/z`: Private keys derived from master *private* key
+  - `m/0`: First child (`0`) private key of the master private key
+  - `m/0/0`: First grandchild private key of the first child (`m/0`)
+  - `m/0'/0`: First normal grandchild  of the first hardened child (`m/0'`)
+  - `m/0/1`: Second child (`1`) of the first child
 - Tree can be as deep as desired, with each step creating 4 billion children: 2 normal, 2 hardened
 - **BIP-44 Proposed Convention:**
-  - m / purpose' / coin_type' / account' / change / address_index
+  - `m / purpose' / coin_type' / account' / change / address_index`
     - m / 44': Follows BIP-44 convention
     - m / 44' / 0': Bitcoin
     - m / 44' / 1': Bitcoin testnet
     - m / 44' / 2': Litecoin
   - Several accounts in the wallet related to Bitcoin
   - For each account, have change addresses for the transaction change
+
+### Final Remarks
+
+Important concepts:
+
+- Asymmetric cryptography
+- 256-bit mnemonic seeds
+- Private key (k) -> (elliptic curve multiplication) -> Public key (K) -> (hashing) -> Bitcoin Address (A)
+- Extended public and private keys (`xpub`, `xpriv`)
+  - It's possible to create public child keys without private parent keys, just with the public parent keys!
+  - BUT: be careful, that involves security/privacy risks, because all public keys get exposed.
+- We cannot create many addresses from a public key, but just one; in contrast, we can create many public keys from a master key (4k million), which makes possible to get many addresses (4k million), one from each public key.
 
 ## Chapter 6: Transactions
 
