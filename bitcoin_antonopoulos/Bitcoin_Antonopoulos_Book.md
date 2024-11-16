@@ -580,10 +580,21 @@ We have two main types of encryptions approaches:
    - Issue: sharing the key can be unfeasible or dangerous.
 2. **Asymmetric**
    - Create a key pair: private and public key.
-     - Private key is kept private, never shared.
-     - Public key is shared with all peers.
+     - Private key (`PrivK`) is kept private, never shared.
+     - Public key (`PubK`) is shared with all peers.
    - If a peer wants to send content, they encrypt it with the public key of the receiver.
    - Receiver decrypts it with the linked private key.
+
+Thus, in asymmetric cryptography, another person encrypts a message for us with OUR public key (`PubK`) and we decrypt it with our private key (`PrivK`).
+However, note that in Bitcoin we use **digital signatures** based on asymmetric cryptography; these work in practice in a different way:
+We create a signature with our message and our `PrivK` and the receiver gets both the message and our `PubK`.
+Then, the receiver verifies that the message is correct using 
+
+- the `PubK`,
+- the signature,
+- and the message.
+
+ More on digital signatures in the section [Digital Signatures](#digital-signatures).
 
 Further notes on **Asymmetric Encryption**:
 
@@ -880,136 +891,222 @@ Important concepts:
 
 ## Chapter 6: Transactions
 
-**Transactions** are public entries in the blockchain in which value transfers between participants are encoded. Although explorers and other interfaces show many fields for a transaction (e.g., addresses), these are high-level constructions that are not really in a transaction.
+Transactions are public entries in the blockchain in which value transfers between participants are encoded. Although explorers and other interfaces show many fields for a transaction (e.g., addresses), these are high-level constructions that are not really in a transaction.
 
-**A Transaction Encoded in the Blockchain Has These Fields:**
+A transaction encoded in the blockchain has these fields:
+
 - **vin**: Inputs (where the value goes to)
-  - `txid`: Reference to the transaction that contains the UTXO being spent
-    - The index `vout` of the UTXO in that transaction
-    - Need to go to the referenced transaction and check the UTXO to see the value being spent!
-  - `scriptSig`: Unlocking script that gives access to the funds to be spent
-    - CONTAINS the address (public key hash) of the receiver
+  - `txid`: Reference to the transaction that contains the UTXO being spent.
+    - The index `vout` of the UTXO in that transaction.
+    - We need to go to the referenced transaction and check the UTXO to see the value being spent!
+  - `scriptSig`: Unlocking script that gives access to the funds to be spent.
+    - CONTAINS the address (public key hash) of the receiver.
   - `sequence`
 - **vout**: Outputs (where the value comes from)
-  - `values`: Amounts in satoshis (plural, in case of several)
+  - `values`: Amounts
   - `scriptPubKeys`: Locking script that locks the funds to be spent
     - USES the signature and the public key of the wallet from which we'd like to spend
 
-**IMPORTANT:**
-- The unlocking and locking scripts are executed in sequence; if successful (i.e., wallet proves it is owner of private-public key assigned to funds), the transaction is integrated into the blockchain
-- Every node needs to confirm the transaction
+Example: Transaction with txid `466200308696215bbc949d5141a49a4138ecdfdfaa2a8029c1f9bcecd1f96177`.
 
-**UTXO = Unspent Transaction Output = vout (VERY IMPORTANT)**
-- Indivisible chunks of bitcoin recorded in the blockchain that are waiting to be spent
-  - Outputs are INDIVISIBLE and INTEGERS = measured in satoshis
-  - INDIVISIBLE means: a UTXO can be consumed only in its entirety; if amount sent doesn't match, need to either:
-    - Gather several UTXOs
-    - Generate change
+![Transaction view from Bitcoin explorer](./assets/transaction_explorer.png)
+
+Equivalent JSON transaction information:
+
+```json
+{
+    "txid": "466200308696215bbc949d5141a49a4138ecdfdfaa2a8029c1f9bcecd1f96177",
+    "hash": "f7cdbc7cf8b910d35cc69962e791138624e4eae7901010a6da4c02e7d238cdac",
+    "version": 1,
+    "size": 194,
+    "vsize": 143,
+    "weight": 569,
+    "locktime": 0,
+    "vin": [
+        {
+            "txid": "4ac541802679866935a19d4f40728bb89204d0cac90d85f3a51a19278fe33aeb",
+            "vout": 1,
+            "scriptSig": {
+                "asm": "",
+                "hex": ""
+            },
+            "txinwitness": [
+                "cf5efe2d8ef13ed0af21d4f4cb82422d6252d70324f6f4576b727b7d918e521c00b51be739df2f899c49dc267c0ad280aca6dab0d2fa2b42a45182fc83e8171301"
+            ],
+            "sequence": 4294967295
+        }
+    ],
+    "vout": [
+        {
+            "value": 0.0002,
+            "n": 0,
+            "scriptPubKey": {
+                "asm": "1 3b41daba4c9ace578369740f15e5ec880c28279ee7f51b07dca69c7061e07068",
+                "desc": "rawtr(3b41daba4c9ace578369740f15e5ec880c28279ee7f51b07dca69c7061e07068)#38d6v6ev",
+                "hex": "51203b41daba4c9ace578369740f15e5ec880c28279ee7f51b07dca69c7061e07068",
+                "address": "bc1p8dqa4wjvnt890qmfws83te0v3qxzsfu7ul63kp7u56w8qc0qwp5qv995qn",
+                "type": "witness_v1_taproot"
+            }
+        },
+        {
+            "value": 0.00075,
+            "n": 1,
+            "scriptPubKey": {
+                "asm": "0 7752c165ea7be772b2c0acb7f4d6047ae6f4768e",
+                "desc": "addr(bc1qwafvze0200nh9vkq4jmlf4sy0tn0ga5w0zpkpg)#qq404gts",
+                "hex": "00147752c165ea7be772b2c0acb7f4d6047ae6f4768e",
+                "address": "bc1qwafvze0200nh9vkq4jmlf4sy0tn0ga5w0zpkpg",
+                "type": "witness_v0_keyhash"
+            }
+        }
+    ],
+    "hex": "01000000000101eb3ae38f27191aa5f3850dc9cad00492b88b72404f9da135698679268041c54a0100000000ffffffff02204e0000000000002251203b41daba4c9ace578369740f15e5ec880c28279ee7f51b07dca69c7061e07068f8240100000000001600147752c165ea7be772b2c0acb7f4d6047ae6f4768e0141cf5efe2d8ef13ed0af21d4f4cb82422d6252d70324f6f4576b727b7d918e521c00b51be739df2f899c49dc267c0ad280aca6dab0d2fa2b42a45182fc83e817130100000000",
+    "blockhash": "000000000000000000027d39da52dd790d98f85895b02e764611cb7acf552e90",
+    "confirmations": 95476,
+    "time": 1675559245,
+    "blocktime": 1675559245
+}
+```
+
+IMPORTANT:
+
+- The unlocking and locking scripts are executed in sequence; if successful (i.e., wallet proves it is owner of private-public key assigned to funds), the transaction is integrated into the blockchain.
+- Every node needs to confirm the transaction.
+
+### UTXOs
+
+UTXO = Unspent Transaction Output = vout.
+
+- Indivisible chunks of bitcoin recorded in the blockchain that are waiting to be spent.
+  - Outputs are INDIVISIBLE and, if INTEGERS = measured in satoshis
+  - INDIVISIBLE means: an UTXO can be consumed only in its entirety; if amount sent doesn't match, need to either:
+    - Gather several UTXOs.
+    - Generate change.
     - Wallets automatically handle this; if programming, need to code it!
-- Bitcoin nodes track them; there is a UTXO set
-- When a transaction is executed, funds from the UTXO set are transferred, and the set is changed
-- Wallets select UTXOs they control to form the transaction
+- Bitcoin nodes track them; there is a UTXO set.
+- When a transaction is executed, funds from the UTXO set are transferred, and the set is changed.
+- Wallets select UTXOs they control to form the transaction.
+- Transactions are serialized into a byte-stream to transmit them.
 
-**Transactions Have Implicit FEES = sum(Inputs) - sum(Outputs)**
-- Fees are not explicitly in the I/O values but derived from subtraction: sum(Inputs) - sum(Outputs)
-- **Exception: Coinbase Transaction**
-  - First entry in each blockchain block
-  - No UTXO inputs are consumed, but the winning miner node is rewarded with new generated satoshis
-  - This input is called coinbase
-- Need to go to the referenced inputs (spent UTXOs) to compute the fees
-- Wallets usually compute fees automatically
-  - A value of satoshis/byte is chosen, and the final value depends on the size of the transaction (not the value sent)
-  - Fees are not mandatory, but transactions with higher fees are prioritized, as miner nodes select them from the mempool since they can get the fees
+### Fees
+
+Transactions have implicit fees = sum(Inputs) - sum(Outputs).
+
+- Fees are not explicitly in the I/O values but derived from subtraction: sum(Inputs) - sum(Outputs).
+- **Exception: Coinbase Transaction:**
+  - First entry in each blockchain block.
+  - No UTXO inputs are consumed, but the winning miner node is rewarded with new generated satoshis.
+  - This input is called coinbase.
+- We need to go to the referenced inputs (spent UTXOs) to compute the fees.
+- Wallets usually compute fees automatically:
+  - A value of satoshis/byte is chosen, and the final value depends on the size of the transaction (not the value sent).
+  - Fees are not mandatory, but transactions with higher fees are prioritized, as miner nodes select them from the mempool since they can get the fees.
   - To check current fees of unconfirmed transactions:
     - [Bitcoin Fees](https://bitcoinfees.earn.com)
     - `curl https://bitcoinfees.21.co/api/v1/fees/recommended`
 
-**Fees Have Two Functions:**
-1. Compensate bitcoin miners for securing the network
-2. Make it economically infeasible to flood the network with useless transactions
+Fees Have Two Functions:
 
-**Transactions are Serialized into a Byte-stream to Transmit Them**
-- Wallets select UTXOs they control to form the transaction
+1. Compensate bitcoin miners for securing the network.
+2. Make it economically infeasible to flood the network with useless transactions.
 
-**Transaction Scripts and Script Language**
-- Transaction script language is called "Script"
-  - Very simple
-  - Turing-incomplete language: no loops (to avoid infinite loops)
-  - All information necessary is in the scripts
+### Transaction Scripts and Script Language
 
-**We Have an Unlocking Script Part (of the used UTXOs) and a Locking Script Part (which assigns the funds to an address)**
-- **KEY IDEA:** Both parts are executed sequentially - if the result is true, the transaction is successful
-  - Programmable money for which we can script infinite variations and sets of conditions that need to yield true
-  - These are SMART CONTRACTS: Transaction happens if script conditions are met, whatever these conditions are
+As introduced above, transactions contain scripts.
 
-**Scripts: How the Language Works**
+Transactions use a script language called *"Script"*:
+
+- It is very simple.
+- It's a Turing-incomplete language: no loops (to avoid infinite loops).
+- All information necessary is in the scripts.
+
+We have an **unlocking** script part (of the used UTXOs) and a **locking** script part (which assigns the funds to an address).
+
+- Both parts are executed sequentially - if the result is true, the transaction is successful.
+- It enables a programmable money for which we can script infinite variations and sets of conditions that need to yield true.
+- These are **SMART CONTRACTS**: Transaction happens if script conditions are met, whatever these conditions are.
+
+*Script* Language works as follows:
+
 - Operations and variables are sequentially stacked into a stack in LIFO order: one on top of the other
-  - **Typical Operations:**
-    - `ADD`: Last (top) two popped from stack, sum added to stack
-    - `DUP`: Duplicate last (top) stack element and push it
-    - `EQUAL`: Pop last (top) two and push TRUE if both are equal, else FALSE
-    - ...
+- **Typical Operations:**
+  - `ADD`: Last (top) two popped from stack, sum added to stack
+  - `DUP`: Duplicate last (top) stack element and push it
+  - `EQUAL`: Pop last (top) two and push TRUE if both are equal, else FALSE
+  - ...
 
-**P2PKH: The Most Common Script: Pay-to-Public-Key-Hash = Spend Funds to Pay to an Address (= Public Key Hash)**
-```plaintext
-scriptSig (unlocking)              scriptPubKey (locking)
-<sig> <PubK>                       DUP HASH160 <PubKHash> EQUALVERIFY CHECKSIG
+Example of a script pair (unlocking + locking) run in sequence and some exemplary components:
+
 ```
-- `<sig>`: Signature of the wallet that wants to spend added to stack
-  - The signature is created with the message (transaction) and the private key
-  - It can be checked if it was created by the PrivK by using the PubK
-- `<PubK>`: Public key of the wallet that wants to spend added to stack
+Unlocking script                Locking script
+scriptSig                       scriptPubKey
+We provide proof to spend       Our wallet has the funds to be spent
+--------------------------      -------------------------------------------
+<sig> <PubK>                +   DUP HASH160 <PubKHash> EQUALVERIFY CHECKSIG
+--------------------------      -------------------------------------------
 
-**Steps:**
-1. `DUP`: Push top element `<PubK>` to the stack
-   - Stack:
-     ```plaintext
-     <PubK>
-     <PubK>
-     <sig>
-     ```
-2. `HASH160`: Hash the top element in the stack and push it: `hash(PubK) = PubKHash = Address`
-   - Stack:
-     ```plaintext
-     <PubKHash>
-     <PubKHash>
-     <PubK>
-     <sig>
-     ```
-3. `EQUALVERIFY`: Pop 2 top items of stack and check if equal; continue if true
-   - Check that the wallet wanting to spend is providing the PubK that matches the address with the UTXO funds
-   - Stack:
-     ```plaintext
-     <PubK>
-     <sig>
-     ```
-4. `CHECKSIG`: Finally, `<PubK>` and `<sig>` are popped and the signature verification algorithm checks that `<sig>` is valid for `<PubK>`
-   - If true, transaction is valid
-   - The signature is created with the message (transaction) and the private key
-   - Can be checked if it was created by the PrivK by using the PubK
+<sig>: signature of the wallet that wants to spend added to stack.
+  The signature is created with the message (transaction) and the private key.
+  It can be checked it was created by the PrivK by using the PubK.
+  That is the main idea!
 
-**Digital Signatures**
-- **Main Idea:** In asymmetric cryptography, another person encrypts a message for us with OUR public key (PubK) and we decrypt it with our PrivK. BUT NOW: we use the PrivK and PubK the other way around:
-  - Create a unique digital signature with the message (transaction) and the PrivKey:
-    ```plaintext
-    signature <- cryptography(message + PrivK)
-    ```
-  - Send to the network nodes (or to the other party):
-    - The signature
-    - Our PubK
-    - The message = the transaction
-  - Any node can verify with our PubK and the message that the signature was created with the PrivK pair
+<PubK>: public key of the wallet that wants to spend added to stack.
 
-**Consequences:**
-- Digital signatures:
-  1. Authenticate the sender or owner of funds (authentication)
-  2. Proof that the sender cannot deny having sent the message/transaction (nonrepudiation)
-  3. Proof that the message has not been altered (integrity)
+DUP: push top element <PubK> to the stack.
+  Now, stack is:
+    <PubK>
+    <PubK>
+    <sig>
 
-**Final Notes: P2PKH vs 'Strange Transactions'**
-- Most common transactions (~80%) are P2PKH = pay to an address (PubK hash)
-- The rest are called 'strange transactions'; they simply have another type of locking/unlocking script
-  - Sometimes, blockchain explorers mark them in red as strange and make the warning that they cannot decode them - it's really nothing wrong with them, they simply are not P2PKH
+HASH160: it hashes the top element in the stack and pushes it:
+  hash(PubK) = PubKHash = Address.
+
+<PubKHash>: PubKHash = Address pushed to the stack.
+  Now, stack is:
+    <PubKHash>
+    <PubKHash>
+    <PubK>
+    <sig>
+
+EQUALVERIFY: 2 top items of stack popped and checked if equal; execution continues if true.
+  Basically, we check that the wallet that wants to spend is providing the PubK that matches with the address that has the UTXO funds.
+  If equal, stack is:
+    <PubK>
+    <sig>
+
+CHEKCSIG: finally, <PubK> and <sig> are popped and the signature verification algorithm checks that <sig> is valid for <PubK>.
+  If true, tx (transaction) is valid.
+  The signature is created with the message (transaction) and the private key.
+  It can be checked it was created by the PrivK by using the PubK.
+  That is the main idea!
+```
+
+### Digital Signatures
+
+In asymmetric cryptography, another person encrypts a message for us with OUR public key (`PubK`) and we decrypt it with our private key (`PrivK`).
+BUT for digital signatures we use the `PrivK` and `PubK` the other way around:
+
+- Create a unique digital signature with the message (transaction) and the PrivK:
+  ```
+  signature <- cryptography(message + `PrivK`)
+  ```
+- Send to the network nodes (or to the other party):
+  - The signature.
+  - Our `PubK`.
+  - The message = the transaction.
+- Any node can verify with our `PubK` and the message that the signature was created with the `PrivK` pair.
+
+As a consequence, digital signatures achieve the following:
+
+1. Authenticate the sender or owner of funds (authentication).
+2. Proof that the sender cannot deny having sent the message/transaction (nonrepudiation).
+3. Proof that the message has not been altered (integrity).
+
+### Common Transactions and Strange Transactions
+
+- Most common transactions (~80%) are **P2PKH** = pay to an address (PubK hash).
+- The rest are called *"strange transactions"*; they simply have another type of locking/unlocking script.
+- Sometimes, blockchain explorers mark *"strange transactions"* in red as strange and make the warning that they cannot decode them - it's really nothing wrong with them, they simply are not P2PKH.
 
 ## Chapter 7: Advanced Transactions and Scripting
 
