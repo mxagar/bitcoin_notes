@@ -594,7 +594,9 @@ Then, the receiver verifies that the message is correct using
 - the signature,
 - and the message.
 
- More on digital signatures in the section [Digital Signatures](#digital-signatures).
+More on digital signatures in the section [Digital Signatures](#digital-signatures).
+
+![Asymmetric Cryptography](./assets/asymmetric_cryptography.png)
 
 Further notes on **Asymmetric Encryption**:
 
@@ -1101,6 +1103,8 @@ As a consequence, digital signatures achieve the following:
 1. Authenticate the sender or owner of funds (authentication).
 2. Proof that the sender cannot deny having sent the message/transaction (nonrepudiation).
 3. Proof that the message has not been altered (integrity).
+
+![Asymmetric Cryptography](./assets/asymmetric_cryptography.png)
 
 ### Common Transactions and Strange Transactions
 
