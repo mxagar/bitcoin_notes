@@ -1108,77 +1108,95 @@ As a consequence, digital signatures achieve the following:
 
 ### Common Transactions and Strange Transactions
 
-- Most common transactions (~80%) are **P2PKH** = pay to an address (PubK hash).
+- Most common transactions (~80%) are **P2PKH** = pay to public key hash (an address = PubK hash).
 - The rest are called *"strange transactions"*; they simply have another type of locking/unlocking script.
 - Sometimes, blockchain explorers mark *"strange transactions"* in red as strange and make the warning that they cannot decode them - it's really nothing wrong with them, they simply are not P2PKH.
 
 ## Chapter 7: Advanced Transactions and Scripting
 
-**Multisignature Scripts**
-- N PubK are recorded and at least M of those must provide signatures to unlock the funds
-- Due to a bug, these scripts start with 0
+Apart from the most common **P2PKH** (pay to public key hash, i.e., an address), there exist other transactions, too.
 
-**Pay-to-Script-Hash (P2SH)**
-- Multisig transactions make the scripts (thus, also transactions) longer and more complex
-  - **Recall:** The fee is proportional to the size of the transaction
-- **Workaround:** Pay to a redeem script hash and this script needs to unlock the funds later
-  - Effect: The burden of the fees and the complexity of the script is shifted to the recipient (spender) of the transaction
-- **How it Works:** Script is hashed to create an address, and bitcoins are sent to that address
-  - Commonly used with multisignature transactions
-  - P2SH addresses start with 3
+Note that the *Script* scripting language is very rich and has many operators with their fields.
 
-**Data Recording Outputs**
-- Possible to record data in the blockchain, e.g., a digital fingerprint of a file as proof-of-existence on a date
-- These transactions do not involve spending bitcoins
-- **Issue:** Blockchain bloat - create UTXO that cannot be spent
-  - **Solution:** RETURN operator introduced: these transactions don't land in the UTXO memory pool
+### Multisignature Scripts
+
+- N `PubK` are recorded and at least M of those must provide signatures to unlock the funds.
+- Due to a bug, these scripts start with 0, which solves the bug by consensus.
+
+### Pay-to-Script-Hash (P2SH)
+
+- Multisig transactions make the scripts (thus, also transactions) longer and more complex.
+  - Recall: The fee is proportional to the size of the transaction.
+- Workaround: Pay to a redeem script hash and this script needs to unlock the funds later.
+  - Effect: The burden of the fees and the complexity of the script is shifted to the recipient (spender) of the transaction.
+- How it Works: Script is hashed to create an address, and bitcoins are sent to that address.
+  - Commonly used with multisignature transactions.
+  - P2SH addresses start with 3.
+
+### Data Recording Outputs
+
+- It is possible to record data in the blockchain, e.g., a digital fingerprint of a file as proof-of-existence on a date.
+- These transactions do not involve spending bitcoins.
+- Issue: Blockchain bloat - they create UTXOs that cannot be spent.
+  - Solution: RETURN operator introduced: these transactions don't land in the UTXO memory pool.
     - If `OP_RETURN` comes up in the script, 0 bitcoin UTXO is generated and we get FALSE and halt
 
-**Timelocks: Restrictions on Transactions or Outputs that Only Allow Spending After a Point in Time**
-- Two types or levels of implementation:
+### Timelocks
+
+Timelocks are restrictions on transactions or outputs that only allow spending after a point in time.
+
+There are two types or levels of implementation:
   
+1. Through transaction field `nLocktime`.
+2. With operator `CHECKLOCKTIMEVERIFY`.
 
- 1. Through transaction field `nLocktime`
-   2. With operator `CHECKLOCKTIMEVERIFY`
+#### `nLocktime`
 
-**1. nLocktime**
 - Custom field in the transaction: `nLocktime`
-  - If 0, immediate propagation
-  - If < 500 million, interpreted as block height
-  - If > 500 million, Unix Epoch time = seconds since Jan-1-1970
-- **Problem:** Double-spending possible
-  - Example:
-    - Alice sends a transaction to Bob with `nLocktime = now + 3 months` (spendable in 3 months)
-    - Bob gets the transaction but can't use it immediately; he can spend the bitcoins in it after 3 months
-    - BUT: Alice can create another transaction that spends those bitcoins!
+  - If 0, immediate propagation.
+  - If < 500 million, interpreted as block height.
+  - If > 500 million, Unix Epoch time = seconds since Jan-1-1970.
+- Problem: Double-spending becomes possible; example:
+  - Alice sends a transaction to Bob with `nLocktime = now + 3 months` (spendable in 3 months).
+  - Bob gets the transaction but can't use it immediately; he can spend the bitcoins in it after 3 months.
+  - BUT: Alice can create another transaction that spends those bitcoins!
 
-**2. CHECKLOCKTIMEVERIFY**
-- Introduced in December 2015 (BIP-65)
-- **Solution to Double-Spending:** Operator takes time value as parameter in the same format as `nLocktime`
+#### `CHECKLOCKTIMEVERIFY` (CLTV)
 
-**Relative Timelocks: CHECKSEQUENCEVERIFY & nSequence**
-- Transaction is done, and the UTXO is confirmed in the blockchain
-  - **Relative Timelock:** Specifies elapsed time from confirmation as condition for spending the UTXO
-  - Clock starts ticking when UTXO is recorded in the blockchain
-- **Use Case:** Allow a chain of 2+ interdependent transactions to be held off-chain
-  - **Essential for Technologies Like the Lightning Layer:** Bidirectional state channels
+- Introduced in December 2015 (BIP-65).
+- Solution to Double-Spending: Operator takes time value as parameter in the same format as `nLocktime`.
 
-**Two Levels of Implementation:**
-1. Transaction level: Field `nSequence`
-   - **Note:** Originally `nSequence` intended to allow modification of transactions in the mempool, but never used like that
-2. Script operator level: Operator `CHECKSEQUENCEVERIFY`
+### Relative Timelocks
 
-**About Time Synchronization**
-- Bitcoin is a decentralized network: each participant has its own perspective of time...
-- Eventually, everything is synced every 10 minutes (new block)
-- Possible malicious actions could be exploited
-  - **Solution:** Consensus rules
-    - **Example:** Median-Time-Past: Median of the last 11 blocks (time ~1 hour behind)
-    - **Issue:** Not fully understood
+Relative timelocks specify an elapsed time from the confirmation of the output as a condition of spending it:
 
-**Scripts with Flow Control: IF .. ELSE .. ENDIF**
-- Unlimited nested conditions possible - but consensus rules limit script size
-- Build redeem scripts with conditions, e.g., two signers, either one can redeem
+- Transaction is done, and the UTXO is confirmed in the blockchain.
+  - Relative Timelock: Specifies elapsed time from confirmation as condition for spending the UTXO.
+  - Clock starts ticking when UTXO is recorded in the blockchain.
+- Use Case: Allow a chain of 2+ interdependent transactions to be held off-chain.
+  - **Essential for technologies like the Lightning Layer:** Bidirectional state channels.
+
+Relative timelocks are/can be implemented in two ways/levels:
+
+1. At transaction level, using the field `nSequence`.
+   - Note: Originally `nSequence` intended to allow modification of transactions in the mempool, but never used like that.
+2. Script operator level, with operator `CHECKSEQUENCEVERIFY`.
+
+Notes about time synchronization:
+
+- Bitcoin is a decentralized network: each participant has its own perspective of time.
+- But, eventually, everything is synced every 10 minutes (new block).
+- Possible malicious actions could be exploited, though.
+  - Solution:** Consensus rules.
+    - Example: Median-Time-Past: Median of the last 11 blocks (time ~1 hour behind).
+    - Issue: Not fully understood.
+
+### Scripts with Flow Control
+
+It is possible to build scripts with flow control, i.e., `IF .. ELSE .. ENDIF`:
+
+- Unlimited nested conditions become possible with them, but consensus rules limit script size.
+- Build redeem scripts with conditions, e.g., two signers, either one can redeem.
 
 ## Chapter 8: The Bitcoin Network
 
