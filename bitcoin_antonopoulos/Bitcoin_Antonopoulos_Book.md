@@ -382,6 +382,7 @@ bitcoin-cli getrawtransaction <txid> true
 bitcoin-cli getblockhash 1000
 
 # JSON string of block returned; here, we can see all the transactions of the block and follow the transactions
+# We can increase the verbosity to get also all the tx information (inputs and outputs, etc.)
 bitcoin-cli getblock <block-hash>
 
 # JSON string with the block header (useful for SPVs)
@@ -1293,16 +1294,19 @@ bitcoin-cli getblockhash 500000 # 00000000000000000024fb37364cbf81fd49cc2d51c09c
 
 # JSON string of block returned; 
 # here, we can see all the transactions of the block and follow the transactions
+# We can increase the verbosity to get also all the tx information (inputs and outputs, etc.)
 bitcoin-cli getblock <block-hash>
 
 # JSON string with the block header (useful for SPVs)
 bitcoin-cli getblockheader <block-hash>
 ```
 
-The block JSON is very similar to the block header JSON; the main difference is that the block JSON contains all the transaction ids in the block, whereas the header doesn't. Because of that reason, the header JSON is much smaller than the block JSON.
+The block JSON is very similar to the block header JSON; the main difference is that the block JSON contains all the transactions in the block, whereas the header doesn't. Because of that reason, the header (JSON) is much smaller than the block (JSON). Note that the block JSON contains only the transaction ids (if no verbosity flag is increased), but the real block stored in the blockchain contains all the transactions entirely (inputs and outputs, etc.).
 
 ```json
 // BLOCK HEADER JSON of block with height 500000
+// bitcoin-cli getblockhash 500000
+// bitcoin-cli getblockheader <block-hash>
 {
   "hash": "00000000000000000024fb37364cbf81fd49cc2d51c09c75c35433c3a1945d04",
   "confirmations": 371613,
@@ -1325,6 +1329,9 @@ The block JSON is very similar to the block header JSON; the main difference is 
 ```json
 // BLOCK JSON of block with height 500000
 // It contains all the transaction ids!
+// It contains all the transaction ids! We can increase the verbosity to get also all the tx information (inputs and ouputs, etc.)
+// bitcoin-cli getblockhash 500000
+// bitcoin-cli getblock <block-hash>
 {
   "hash": "00000000000000000024fb37364cbf81fd49cc2d51c09c75c35433c3a1945d04",
   "confirmations": 371613,
@@ -1352,7 +1359,6 @@ The block JSON is very similar to the block header JSON; the main difference is 
     "c78c614d47c0facd1162d7c40bbc6a2ad3d96aacd4afdfef1453069b1a5b8345"
   ]
 }
-
 ```
 
 #### Bloom Filters
@@ -1400,52 +1406,170 @@ Bitcoin communications are NOT encrypted! This is not a problem for regular full
 
 ## Chapter 9: The Blockchain
 
-### The Blockchain
+The blockchain is a sequence of blocks that contain transactions.
+Each block has a header, which is metadata about the block itself.
+Block metadata (headers) are stored using Google's LevelDB:
 
-The blockchain is a sequence of blocks that contain transactions. Each block has a header, which is metadata about the block itself.
-
-- Block metadata (headers) are stored using Google's LevelDB
-  - [LevelDB GitHub Repository](https://github.com/google/leveldb)
-  - LevelDB is a fast key-value storage library written at Google that provides an ordered mapping from string keys to string values
+- [LevelDB GitHub Repository](https://github.com/google/leveldb)
+- LevelDB is a fast key-value storage library written at Google that provides an ordered mapping from string keys to string values
 
 ### Block Structure
 
 Blocks are often represented as stacked one on top of the other, hence: height = the number of the block.
 
 Each block:
+
 - Has a unique identifier: a block (header) hash
-  - **IMPORTANT:** This hash is only in the child block; for the current block or any block we receive, we compute it! (It is computed every time for verification)
-  - The hash is computed only with the header, not the transactions - but the header has a Merkle root hash of the transactions
+  - This hash is only in the child block; for the current block or any block we receive, we compute it! (It is computed every time for verification).
+  - The hash is computed only with the header, not the transactions; but the header has a Merkle root hash of the transactions.
 - Has a parent block: the previous block
   - The hash of the parent block is in the header of the block
-  - **IMPORTANT:** This cascade effect makes it impossible to modify the content of past blocks
-    - If we falsify one block, we need to falsify all preceding blocks accordingly
-    - This is energetically impossible
-- Produces several children blocks, among which only one is selected (the one of the winning miner) and added to the blockchain
+  - **IMPORTANT: This cascade effect makes it impossible to modify the content of past blocks!**
+    - If we falsify one block, we need to falsify all preceding blocks accordingly.
+    - This is energetically impossible.
+- Produces several children blocks, among which only one is selected (the one of the winning miner) and added to the blockchain.
 
-### Structure of a Block
+#### Example
 
-- **Block Size:** 4 bytes
-- **HEADER:** 80 bytes
+Here, I show the JSON of the block 500,000 as obtained with `bitcoin-cli`:
+
+```json
+// BLOCK JSON of block with height 500000
+// It contains all the transaction ids! We can increase the verbosity to get also all the tx information (inputs and ouputs, etc.)
+// bitcoin-cli getblockhash 500000
+// bitcoin-cli getblock <block-hash>
+{
+  "hash": "00000000000000000024fb37364cbf81fd49cc2d51c09c75c35433c3a1945d04",
+  "confirmations": 371613,
+  "height": 500000,
+  "version": 536870912,
+  "versionHex": "20000000",
+  "merkleroot": "31951c69428a95a46b517ffb0de12fec1bd0b2392aec07b64573e03ded31621f",
+  "time": 1513622125,
+  "mediantime": 1513620886,
+  "nonce": 1560058197,
+  "bits": "18009645",
+  "difficulty": 1873105475221.611,
+  "chainwork": "000000000000000000000000000000000000000000cda532266f9147b519e933",
+  "nTx": 2701,
+  "previousblockhash": "0000000000000000007962066dcd6675830883516bcf40047d42740a85eb2919",
+  "nextblockhash": "0000000000000000005c9959b3216f8640f94ec96edea69fe12ad7dee8b74e92",
+  "strippedsize": 981404,
+  "size": 1048581,
+  "weight": 3992793,
+  "tx": [
+    "2157b554dcfda405233906e461ee593875ae4b1b97615872db6a25130ecc1dd6",
+    "fe6c48bbfdc025670f4db0340650ba5a50f9307b091d9aaa19aa44291961c69f",
+    //... 2701 tx ids!
+    "277f770ccce6dade20a9d797e3f88419435f465db56bd7b0a4ee94bb41a069e2",
+    "c78c614d47c0facd1162d7c40bbc6a2ad3d96aacd4afdfef1453069b1a5b8345"
+  ]
+}
+```
+
+The block JSON is very similar to the block header JSON; the main difference is that the block JSON contains all the transactions in the block, whereas the header doesn't. Because of that reason, the header (JSON) is much smaller than the block (JSON). Note that the block JSON contains only the transaction ids (if no verbosity flag is increased), but the real block stored in the blockchain contains all the transactions entirely (inputs and outputs, etc.).
+
+Structure of the block:
+
+- Block Size: 4 bytes
+- HEADER: 80 bytes
   - Version
   - Previous block hash: hash of the parent block
   - Merkle root hash: hashed summary of the transactions
   - Timestamp
-  - Difficulty target: Proof-of-Work algorithm difficulty target
-  - Nonce: a counter used for the Proof-of-Work algorithm
-- **Transaction Counter:** 1-9 bytes
-- **Transactions:** Around 500 transactions of 250 bytes each on average (1000x smaller than the header)
-  - List of transactions included, one after the other
+  - Difficulty target: Proof-of-Work algorithm difficulty target.
+  - Nonce: this is the number that the miners try to find in the Proof-of-Work algorithm; it's value that resulted in a successful hash. Usually, miners start from 0 and ascend the nonce value to find the correct one.
+  - ...
+- Transaction Counter: 1-9 bytes (how many transactions).
+- Transactions: Around 500 transactions of 250 bytes each on average (1000x smaller than the header).
+  - List of transactions included, one after the other.
 
 ### Genesis Block
 
 The first block, block with height 0, defined by Satoshi Nakamoto. It is hardcoded so that it cannot be altered. Every subsequent block must match it if traced back.
 
-- **Message Encoded:** 
-  - "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
-  - Proof that the block is at least from 03/Jan/2009
+Message in the Genesis Block:
+
+- "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
+- Proof that the block is at least from 03/Jan/2009
+
+The JSON of the **Genesis Block**:
+
+```json
+// GENESIS BLOCK
+// bitcoin-cli getblockhash 0 # 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
+// We get the block contents with verbosity set to 2
+// bitcoin-cli getblock 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f 2
+{
+  "hash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+  "confirmations": 871636,
+  "height": 0,
+  "version": 1,
+  "versionHex": "00000001",
+  "merkleroot": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+  "time": 1231006505,
+  "mediantime": 1231006505,
+  "nonce": 2083236893,
+  "bits": "1d00ffff",
+  "difficulty": 1,
+  "chainwork": "0000000000000000000000000000000000000000000000000000000100010001",
+  "nTx": 1,
+  "nextblockhash": "00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048",
+  "strippedsize": 285,
+  "size": 285,
+  "weight": 1140,
+  "tx": [
+    {
+      "txid": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+      "hash": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+      "version": 1,
+      "size": 204,
+      "vsize": 204,
+      "weight": 816,
+      "locktime": 0,
+      "vin": [
+        {
+          "coinbase": "04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73",
+          "sequence": 4294967295
+        }
+      ],
+      "vout": [
+        {
+          "value": 50.00000000,
+          "n": 0,
+          "scriptPubKey": {
+            "asm": "04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f OP_CHECKSIG",
+            "desc": "pk(04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f)#vlz6ztea",
+            "hex": "4104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac",
+            "type": "pubkey"
+          }
+        }
+      ],
+      "hex": "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4d04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73ffffffff0100f2052a01000000434104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac00000000"
+    }
+  ]
+}
+```
+
+We can see the following in the JSON:
+
+- Confirmations matches the current number of blocks, because it's the first block.
+- The time is `1231006505`, which corresponds to `2009-01-03T12:15:05`.
+  ```bash
+  date -d @1231006505 +"%Y-%m-%dT%H:%M:%S" # 2009-01-03T12:15:05
+  ```
+- It has a unique transaction, which is the **Coinbase Transaction**: `4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b`, where the message is encrypted.
+- The transaction value is of 50 bitcoin.
+- If we decode the value in `"coinbase"`, we obtain the hidden message:
+
+```bash
+echo "04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b" | xxd -r -p
+# ??EThe Times 03/Jan/2009 Chancellor on brink of second bailout for bank
+```
 
 ### Merkle Trees
+
+<!--HERE-->
 
 A Merkle tree is a binary hash tree that hashes the transactions of a block, summarizing them. It is computed by recursively double-hashing pairs of transactions or hashed transaction pairs, bottom-up.
 
