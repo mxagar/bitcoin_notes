@@ -384,6 +384,9 @@ bitcoin-cli getblockhash 1000
 # JSON string of block returned; here, we can see all the transactions of the block and follow the transactions
 bitcoin-cli getblock <block-hash>
 
+# JSON string with the block header (useful for SPVs)
+bitcoin-cli getblockheader <block-hash>
+
 # Get mempool info: general stats
 bitcoin-cli getmempoolinfo
 
@@ -1187,7 +1190,7 @@ Notes about time synchronization:
 - Bitcoin is a decentralized network: each participant has its own perspective of time.
 - But, eventually, everything is synced every 10 minutes (new block).
 - Possible malicious actions could be exploited, though.
-  - Solution:** Consensus rules.
+  - Solution: Consensus rules.
     - Example: Median-Time-Past: Median of the last 11 blocks (time ~1 hour behind).
     - Issue: Not fully understood.
 
@@ -1200,95 +1203,200 @@ It is possible to build scripts with flow control, i.e., `IF .. ELSE .. ENDIF`:
 
 ## Chapter 8: The Bitcoin Network
 
-**Bitcoin is Structured as a Peer-to-Peer (P2P) Network on Top of the Internet**
-- All peers are equal; no special nodes
-- No hierarchy; flat topology
-- Other P2P examples:
-  - Napster, BitTorrent
+Bitcoin is structured as a Peer-to-Peer (P2P) network on top of the Internet:
 
-**In Addition to the P2P Protocol, Other Protocols Coexist Within Bitcoin:**
-- Stratum: Used by mining pools
-- Lightweight wallet protocols
+- All peers are equal; no special nodes.
+- No hierarchy; flat topology.
+- Other P2P examples: Napster, BitTorrent.
+
+In addition to the P2P protocol, other protocols coexist within Bitcoin:
+
+- Stratum: Used by mining pools.
+- Lightweight wallet protocols (SPV = Simplified Payment Verification).
 - Other mining pool protocols
-- They together form the extended bitcoin network
 
-**Nodes Can Have Several Modules (Functionalities) or Not:**
+All those protocols together form the **extended bitcoin network**.
 
-**Modules / Functionalities:**
-- **Wallet:** Keys stored and the ability to sign & spend
-- **Mining:** New blocks are written to the blockchain and new bitcoins rewarded
-- **(Full) Blockchain:** Full history of transactions
-- **Network Routing:** Transactions and any other information propagated to connected peers
+### Types of Nodes
 
-**Types of Nodes:**
+Nodes can have several modules (i.e., functionalities) -- or not:
+
+- **Wallet:** Keys stored and the ability to sign & spend.
+- **Mining:** New blocks are written to the blockchain and new bitcoins rewarded.
+- **(Full) Blockchain:** Full history of transactions.
+- **Network Routing:** Transactions and any other information propagated to connected peers.
+
+According to the functionalities they have, we distinguish different types of nodes:
+
 - **Full Nodes:**
-  - Have the full blockchain and can autonomously verify any transaction without external reference
-  - Usually wallets that can verify by themselves
+  - Have the full blockchain and can autonomously verify any transaction without external reference.
+  - Usually wallets that can verify by themselves.
 - **Mining Nodes:**
-  - Don't need the full blockchain
-  - Compete to create new blocks to solve the Proof-of-Work algorithm
-  - Usually run on specific hardware and often grouped in pools
-- **SPV Nodes (Simplified Payment Verification, aka Lightweight Nodes):**
-  - Don't have the full blockchain but a subset (headers)
-  - Request information with privacy techniques to complete the view of the blockchain they need
-  - Usually mobile lightweight wallets
+  - Don't need the full blockchain.
+  - Compete to create new blocks to solve the Proof-of-Work algorithm.
+  - Usually run on specific hardware and often grouped in pools.
+- **SPV Nodes (Simplified Payment Verification, aka. Lightweight Nodes):**
+  - Don't have the full blockchain but a subset (headers).
+  - Request information with privacy techniques to complete the view of the blockchain they need.
+  - Usually mobile lightweight wallets.
 - **Edge Routers:**
-  - Full nodes without wallet
-  - Verify and propagate transactions
-  - Use case: Explorers, exchanges
+  - Full nodes without wallet.
+  - Verify and propagate transactions.
+  - Use case: Explorers, exchanges.
 
-**Bitcoin Relay Networks**
-- **Issue:** Main P2P bitcoin network has too high latency for specialized needs of mining nodes
-- **Solution:** Relay networks
-  - Like highways providing fast shortcuts - local roads necessary to arrive at the destination
+### Bitcoin Relay Networks
+
+There exist Bitcoin relay networks to allow for faster transfer of network information, useful for mining applications, where mining nodes compete with each other (thus, latency is an issue).
+
+- Issue: Main P2P bitcoin network has too high latency for specialized needs of mining nodes.
+- Solution: Relay networks
+  - Like highways providing fast shortcuts - local roads necessary to arrive at the destination.
   - Example: FIBRE (Fast Internet Bitcoin Relay Engine)
-    - UDP-based relay that relays blocks within a network of nodes
+    - UDP-based relay that relays blocks within a network of nodes.
 
-**Network Discovery**
+### Network Discovery
+
+A node needs to connect to its peers in a P2P networks; in the beginning, hard-coded IPs are connected, but then a peer list is created and maintained.
+
 - **First Time Node Boots:**
-  - Uses 'DNS seeds' (predefined hardcoded servers) to connect to a peer
-  - Can also manually force the IP of the server to first use
-  - After a handshake (initial messages with version info, etc., exchanged), a random list of peers is provided to the new node, and the node connects to them
-  - Download of the blockchain starts: the node knows only the first block, the rest is downloaded from the peers
-  - Number of blocks transferred is controlled to avoid collapsing the network
+  - Uses 'DNS seeds' (predefined hardcoded servers) to connect to a peer.
+  - Can also manually force the IP of the server to first use.
+  - After a handshake (initial messages with version info, etc., exchanged), a random list of peers is provided to the new node, and the node connects to them.
+  - Download of the blockchain starts: the node knows only the first block, the rest is downloaded from the peers.
+  - Number of blocks transferred is controlled to avoid collapsing the network.
 - **Next Reboots:**
-  - Node has its own list of last peers and connects to any of them to repeat the procedure
-- **Connections:** Occur on port 8333 using TCP
-- **Get Info on Peers:**
-  - `bitcoin-cli getpeerinfo`
+  - Node has its own list of last peers and connects to any of them to repeat the procedure.
+- **Connections:** Occur on port 8333 using TCP.
+- **Get Info on Peers:** `bitcoin-cli getpeerinfo`
 
-**SPV Nodes (Simplified Payment Verification)**
-- Download only headers, not the transactions in each block -> 1000x smaller
-  - Use `getheaders` instead of `getblocks`
-- **Verification:** Relies on peers providing partial views of the blockchain on demand
-- **Privacy Issue:** SPV nodes need to ask for specific transactions and addresses, potentially revealing addresses
-  - **Solution:** Bloom Filters
-    - Probabilistic search filters
-    - Search for patterns rather than specific transactions or addresses
-    - Degree of privacy can be tuned in the filter
-    - **Note:** Even with Bloom filters, targeted traffic monitoring can reveal information
+### SPV Nodes (Simplified Payment Verification)
 
-**Encrypted and Authenticated Connections**
-- Bitcoin communications are NOT encrypted
-  - **Issue:** Not a problem for regular full nodes, but can be for SPV nodes (even with Bloom filters)
-- **Ways to Increase Privacy:**
-  1. **Tor Transport:**
-     - The Onion Routing network
-       - Encryption and encapsulation of data through randomized network paths
-       - Offers anonymity, untraceability, privacy
-     - Used automatically if connection is available (permissions to access the Tor authentication cookie)
-       - **Does myNode have it?**
-  2. **Peer-to-Peer Authentication and Encryption:**
-     - Defined by BIPs 150 & 151
-     - **Particular Benefit for SPVs:** Increased overall bitcoin network security: resistant to control and surveillance
-     - **Not Implemented Yet?**
+SPV Nodes (Simplified Payment Verification) download only headers, not all the transactions in each block so the information amount downloaded is about 1000x smaller. This is done using `getheaders` instead of `getblocks`.
 
-**Transaction Pools**
-- Nodes maintain a list of unconfirmed transactions: the transaction pool
-  - Known to the network but not yet registered in the blockchain
-  - List is dynamically generated by each node - differs from node to node
-  - Used to track incoming payments to the user's wallet
-- Some nodes also have a persistent (stored) database of all UTXOs: transaction outputs that have not been spent
+- **Verification:** Relies on peers providing partial views of the blockchain on demand.
+- **Privacy Issue:** SPV nodes need to ask for specific transactions and addresses, potentially revealing addresses.
+  - **Solution: Bloom Filters**
+    - These are probabilistic search filters.
+    - They search for patterns rather than specific transactions or addresses.
+    - Degree of privacy can be tuned in the filter.
+    - However, even with Bloom filters, targeted traffic monitoring can reveal information
+
+In the following, the `bitcoin-cli` commands to obtain the header and block JSONs are shown.
+
+```bash
+# Get current block height
+bitcoin-cli getblockchaininfo
+
+# Hash of block with index 500000, we need to decode it;
+# the index or id is called the height
+bitcoin-cli getblockhash 500000 # 00000000000000000024fb37364cbf81fd49cc2d51c09c75c35433c3a1945d04
+
+# JSON string of block returned; 
+# here, we can see all the transactions of the block and follow the transactions
+bitcoin-cli getblock <block-hash>
+
+# JSON string with the block header (useful for SPVs)
+bitcoin-cli getblockheader <block-hash>
+```
+
+The block JSON is very similar to the block header JSON; the main difference is that the block JSON contains all the transaction ids in the block, whereas the header doesn't. Because of that reason, the header JSON is much smaller than the block JSON.
+
+```json
+// BLOCK HEADER JSON of block with height 500000
+{
+  "hash": "00000000000000000024fb37364cbf81fd49cc2d51c09c75c35433c3a1945d04",
+  "confirmations": 371613,
+  "height": 500000,
+  "version": 536870912,
+  "versionHex": "20000000",
+  "merkleroot": "31951c69428a95a46b517ffb0de12fec1bd0b2392aec07b64573e03ded31621f",
+  "time": 1513622125,
+  "mediantime": 1513620886,
+  "nonce": 1560058197,
+  "bits": "18009645",
+  "difficulty": 1873105475221.611,
+  "chainwork": "000000000000000000000000000000000000000000cda532266f9147b519e933",
+  "nTx": 2701,
+  "previousblockhash": "0000000000000000007962066dcd6675830883516bcf40047d42740a85eb2919",
+  "nextblockhash": "0000000000000000005c9959b3216f8640f94ec96edea69fe12ad7dee8b74e92"
+}
+```
+
+```json
+// BLOCK JSON of block with height 500000
+// It contains all the transaction ids!
+{
+  "hash": "00000000000000000024fb37364cbf81fd49cc2d51c09c75c35433c3a1945d04",
+  "confirmations": 371613,
+  "height": 500000,
+  "version": 536870912,
+  "versionHex": "20000000",
+  "merkleroot": "31951c69428a95a46b517ffb0de12fec1bd0b2392aec07b64573e03ded31621f",
+  "time": 1513622125,
+  "mediantime": 1513620886,
+  "nonce": 1560058197,
+  "bits": "18009645",
+  "difficulty": 1873105475221.611,
+  "chainwork": "000000000000000000000000000000000000000000cda532266f9147b519e933",
+  "nTx": 2701,
+  "previousblockhash": "0000000000000000007962066dcd6675830883516bcf40047d42740a85eb2919",
+  "nextblockhash": "0000000000000000005c9959b3216f8640f94ec96edea69fe12ad7dee8b74e92",
+  "strippedsize": 981404,
+  "size": 1048581,
+  "weight": 3992793,
+  "tx": [
+    "2157b554dcfda405233906e461ee593875ae4b1b97615872db6a25130ecc1dd6",
+    "fe6c48bbfdc025670f4db0340650ba5a50f9307b091d9aaa19aa44291961c69f",
+    //... 2701 tx ids!
+    "277f770ccce6dade20a9d797e3f88419435f465db56bd7b0a4ee94bb41a069e2",
+    "c78c614d47c0facd1162d7c40bbc6a2ad3d96aacd4afdfef1453069b1a5b8345"
+  ]
+}
+
+```
+
+#### Bloom Filters
+
+A Bloom Filter is a probabilistic data structure used to test whether an element is part of a set. It is space-efficient but allows for false positives (an element may seem to be in the set when it’s not) while guaranteeing no false negatives (if an element is not in the set, the filter will always confirm it). They use two key elements for that:
+
+- Bit Array: Operates on a bit array of fixed size.
+- Hash Functions: Uses multiple hash functions to map elements to positions in the bit array.
+
+Advantages of Bloom Filters in SPV Nodes:
+
+- Efficiency: SPV nodes only download block headers (80 bytes each) and transactions matching the Bloom Filter, reducing bandwidth usage by a factor of approximately 1,000.
+- Privacy: SPV nodes do not explicitly tell full nodes which addresses they own. Instead, they use a Bloom Filter that may include extra entries to obscure their true interests.
+- Decentralization: SPV nodes maintain control of their funds without relying on centralized servers.
+
+Challenges and Issues:
+
+- False Positives: Transactions unrelated to the SPV node may pass the Bloom Filter due to false positives, leading to unnecessary downloads.
+- Privacy Concerns: If the Bloom Filter is poorly constructed, it can leak information about the SPV node’s addresses, reducing privacy.
+- Degraded Accuracy: The effectiveness of Bloom Filters diminishes as the number of elements or the complexity of transactions increases.
+
+### Encrypted and Authenticated Connections
+
+Bitcoin communications are NOT encrypted! This is not a problem for regular full nodes, because they download the full blocks and transactions without any selection; however, it can be an issue for SPV nodes (even with Bloom filters).
+
+**Ways to Increase Privacy:**
+
+1. **Tor Transport:**
+   - The Onion Routing network.
+     - Encryption and encapsulation of data through randomized network paths.
+     - Offers anonymity, untraceability, privacy.
+   - Used automatically if connection is available (permissions to access the Tor authentication cookie).
+2. **Peer-to-Peer Authentication and Encryption:**
+   - Defined by BIPs 150 & 151.
+   - **Particular Benefit for SPVs:** Increased overall bitcoin network security: resistant to control and surveillance
+   - **Not implemented yet.**
+
+### Transaction Pools
+
+- Nodes maintain a list of unconfirmed transactions: the transaction pool, aka. the *mempool*.
+  - These txs are known to the network but not yet registered in the blockchain.
+  - The list is dynamically generated by each node - so it differs from node to node.
+  - It is used to track incoming payments to the user's wallet.
+- Some nodes also have a persistent (stored) database of all UTXOs: transaction outputs that have not been spent.
 
 ## Chapter 9: The Blockchain
 
