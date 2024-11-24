@@ -415,6 +415,12 @@ bitcoin-cli getnewaddress # <address>
 bitcoin-cli dumpprivkey <address>
 # Note: we cannot obtain the private key of an arbitrary address,
 # but open the wallet and return the private key
+
+# Testnet: Dev/Test environment with parallel blockchain which is reset (to remove value to coins) every now and then
+# Once downloaded, we can use the same commands, but with the -testnet switch
+bitcoind -testnet # Creates `~/.bitcoin/testnet3` and blockchain starts downloading there
+bitcoin-cli -testnet getinfo
+bitcoin-cli -testnet getblockchaininfo
 ```
 
 There are much more commands, among others, we can interact with the wallet programmatically: receive, send, etc.
@@ -1571,169 +1577,274 @@ echo "04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c
 
 <!--HERE-->
 
-A Merkle tree is a binary hash tree that hashes the transactions of a block, summarizing them. It is computed by recursively double-hashing pairs of transactions or hashed transaction pairs, bottom-up.
+A Merkle tree is a binary hash tree that hashes the transactions of a block, summarizing them.
+That is, it is a binary tree which contains cryptographic hashes.
+It is computed by recursively double-hashing pairs of transactions or hashed transaction pairs, bottom-up.
 
-- Example: Set of 4 transactions: A, B, C, D
-  ```plaintext
-  H_A = SHA256(SHA256(A))
-  H_B = ...; H_C, H_D
-  H_AB = SHA256(SHA256(concat(H_A, H_B)))
-  H_CD = ...
-  H_ABCD = SHA256(SHA256(concat(H_AB, H_CD))) = Merkle root hash (ALWAYS 32 bytes, no matter how many transactions)
-  ```
-- If an odd number of transactions, last one is doubled to obtain an even number (and a balanced tree)
-- To prove that a transaction is included in a block, a node needs to produce log2(N) 32-byte hashes that form the Merkle authentication path
-  - N: Number of transactions (~500 in a block is usual)
-  - n = log2(N): Number of hashes (~9 for 500 transactions)
+Key points:
 
-**IMPORTANT:** Merkle trees are especially important for SPV nodes.
-- SPVs download headers
-- The node has a transaction and wants to verify that it is in a block
-  - Instead of downloading the full block, it requests the Merkle path of the block
-  - With the transaction, the header (containing the Merkle root hash), and the Merkle path, we can verify that the transaction is in the block
-  - **Key Point:** The Merkle path is much smaller in size than the complete set of transactions in a block
+- It summarizes the transactions to a hash, which is added to the header.
+- Given a transaction, it is very simple to check whether it is in the block by checking the Merkle Tree hash.
+
+Example: Consider a set of 4 transactions: A, B, C, D
+
+- We construct the Merkle tree bottom-up.
+- If an odd number of transactions, last one is doubled to obtain an even number (and a balanced tree).
+- Consecutive pairs of transactions are hashed 2x to obtain the parent node hash.
+  - A hash is 32-byte.
+  - The tree doesn't store transactions, but their hashes.
+  - Note that hashes are concatenated (32-byte -> 64-byte), and the hashed 2x again (so they are 32-byte again).
+- It doesn't matter how may transactions we have, we will obtain a root hash of 32-bytes at the end, that's the **Merkle root hash** stored in the header.
+- To prove that a transaction is included in a block, a node needs to produce `log2(N)` 32-byte hashes that form the Merkle authentication path.
+  - `N`: Number of transactions (~500 in a block is usual).
+  - `n = log2(N)`: Number of hashes (~9 for 500 transactions).
+  - Note that all the nodes have the headers, but they need to request the Merkel authentication path to check whether a transaction belongs to a block, it's not enough with the Merkle root hash.
+
+![Merkle Tree - Antonopoulos](./assets/mbc3_1102.png)
+
+```plaintext
+H_A = SHA256(SHA256(A))
+H_B = ...; H_C, H_D
+H_AB = SHA256(SHA256(concat(H_A, H_B)))
+H_CD = ...
+H_ABCD = SHA256(SHA256(concat(H_AB, H_CD))) = Merkle root hash (ALWAYS 32 bytes, no matter how many transactions)
+```
+
+Merkle trees are especially important for SPV nodes:
+
+- SPVs download headers.
+- The node has a transaction and wants to verify that it is in a block.
+  - Instead of downloading the full block, it requests the Merkle path of the block.
+  - With the transaction, the header (containing the Merkle root hash), and the Merkle path, we can verify that the transaction is in the block.
+  - Key Point: The Merkle path is much smaller in size than the complete set of transactions in a block.
 
 ### Other Bitcoin Blockchains
 
-- **Mainnet:** Default blockchain, where the bitcoins are registered
-- **Testnet:** Parallel blockchain to test new features publicly
-  - Bitcoins in the testnet are meant to be worthless
-    - However, some people use GPUs & ASICs, which increases difficulty
-    - Consequently, the coins end up having inherent value since more ENERGY is necessary to produce them
-    - Therefore, the testnet blockchain is reset periodically: restarts with a new genesis block
+When we talk the Blockchain, we usuallt refer to the **mainnet**, i.e., the production Bitcoin network.
+However, there are also other networks, employed for testing purposes.
+
+- **Mainnet:** Default blockchain, where the bitcoins are registered.
+- **Testnet:** Parallel blockchain to test new features publicly.
+  - Bitcoins in the testnet are meant to be worthless.
+    - However, some people use GPUs & ASICs, which increases difficulty.
+    - Consequently, the coins end up having inherent value since more ENERGY is necessary to produce them.
+    - Therefore, the testnet blockchain is reset periodically: restarts with a new genesis block.
   - Use same commands with `-testnet` switch:
-    - `bitcoind -testnet`: Creates `~/.bitcoin/testnet3` and blockchain starts downloading there
-    - `bitcoin-cli -testnet getinfo`
-    - `bitcoin-cli -testnet getblockchaininfo`
-- **Segnet:** Special testnet designed to test the Segregated Witness (SegWit) feature
-  - Since the feature was merged, this network is not necessary anymore
-- **Regtest:** Regression Testing network that runs locally on our computer/node
-  - Testnet is public, but this one is local
+    ```bash
+    bitcoind -testnet # Creates `~/.bitcoin/testnet3` and blockchain starts downloading there
+    bitcoin-cli -testnet getinfo
+    bitcoin-cli -testnet getblockchaininfo
+    ```
+- **Segnet:** Special testnet designed to test the Segregated Witness (SegWit) feature.
+  - Since the feature was merged, this network is not necessary anymore.
+- **Regtest:** Regression Testing network that runs locally on our computer/node.
+  - Testnet is public, but this one is local.
   - Usual pipeline when deploying a new feature (e.g., for a wallet):
-    1. Test locally in the regtest; if it works, then
-    2. Connect to the testnet; if it works, then
-    3. Deploy to production in the mainnet
+    1. Test locally in the `regtest`; if it works, then
+    2. Connect to the `testnet`; if it works, then
+    3. Deploy to production in the `mainnet`
 
 ## Chapter 10: Mining and Consensus
 
-### Mining
-
 Mining secures the bitcoin system and enables the emergence of network-wide consensus without central authority.
+Here's how that works:
 
-**Why?**
-- Each node can add a block to the blockchain if it solves the Proof-of-Work algorithm
-- If achieved, new bitcoins are generated and awarded to the miner node + all the fees in the transactions of the block go to the miner node as well
+- Each node can add a block to the blockchain if it solves the Proof-of-Work (PoW) algorithm.
+- If achieved, new bitcoins are generated and awarded to the miner node + all the fees in the transactions of the block go to the miner node as well.
 - After solving the PoW problem, the solution (easy to check) is integrated within the block, and the block sent to all other nodes
-  - The block will be accepted for inclusion into the global ledger if all consensus conditions are strictly met
-- All miners are incentivized to follow the rules and accept peer solutions that strictly comply with the rules - thus, decentralized global consensus without central authority emerges
+  - The block will be accepted for inclusion into the global ledger if all consensus conditions are strictly met.
+  - A miner node accepts an incoming solution as soon as possible to start mining the next node!
+- All miners are incentivized to follow the rules and accept peer solutions that strictly comply with the rules - thus, decentralized global consensus without central authority emerges.
 
 ### Bitcoin Economics and Currency Creation
 
-- Every 210,000 blocks (~4 years if 1 block/10 minutes), the reward of new bitcoins halves - known as the halving
-  - 1st cycle: 50 bitcoins / new block (2009.01-2012.11)
-  - 2nd cycle: 25 (2012.11-2016.06)
-  - 3rd: 12.5 (2016.06 - 2020.05)
-  - 4th: 6.25 (2020.05 - 2024)
-  - ...
-  - 32 halvings until approx. 2137: in last cycle 1 satoshi/block
-  - From 2140 on, miners get only fees as rewards
-    - **Note:** Nowadays fees represent only ~0.5% of total earnings when a block is mined
-  - Total 21 million bitcoins generated
+There are a total 21 million bitcoins which will be generated in an exponentially decaying supply rate.
+The finite and diminishing issuance creates a fixed monetary supply resistant to inflation.
 
-- The finite and diminishing issuance creates a fixed monetary supply resistant to inflation
+Every 210,000 blocks (~4 years if 1 block/10 minutes), the reward of new bitcoins halves - known as the halving:
+
+- 1st halving cycle: 50 bitcoins / new block (2009.01-2012.11)
+- 2nd cycle: 25 (2012.11-2016.06)
+- 3rd: 12.5 (2016.06 - 2020.05)
+- 4th: 6.25 (2020.05 - 2024.04)
+- 5th 3.125 (2024.04 - 2028)
+- ...
+
+Notes:
+
+- We will have 32 halvings until approx. 2137: in that last halving cycle 1 satoshi/block will be subsidized.
+- From 2140 on, miners get only fees as rewards.
+- Nowadays fees represent only ~0.5% of total earnings when a block is mined.
+- It will take around 36 years to mine the last Bitcoin! See calculation in [`Bitcoin_Calculations.ipynb`](./Bitcoin_Calculations.ipynb).
 
 #### Inflation vs Deflation
 
-- **Deflation:** Money acquires purchasing power over time
-  - Many economists fear that scenario because people would stop spending (lower demand), and the economy would collapse
+- Deflation: Money acquires purchasing power over time, or goods become cheaper.
+  - Many economists fear that scenario because people would stop spending (lower demand), and the economy would collapse.
   - Bitcoin experts argue that deflation is not bad per se:
     - In BTC, deflation is not caused by decreased demand, but decreased SUPPLY!
-    - Inflation causes debasement of money value, it's like a hidden taxation that punishes savers
-  - **BUT:** In reality, nobody knows if a deflationary currency is good - maybe it does outweigh the drawbacks of an inflationary monetary system.
+    - Inflation causes debasement of money value, it's like a hidden taxation that punishes savers.
+  - BUT: In reality, nobody knows if a deflationary currency is good - maybe it does outweigh the drawbacks of an inflationary monetary system.
 
-### Decentralized Consensus
+### Decentralized (Emergent) Consensus
 
-In Bitcoin, there is no centralized clearinghouse that audits the system and the ledger. Instead, all nodes can audit it and come to the same conclusion - that's emergent consensus.
+In Bitcoin, there is no centralized clearinghouse that audits the system and the ledger.
+Instead, all nodes can audit it and come to the same conclusion - that's emergent consensus.
 
 **Emergent Consensus** is not an extra mechanism; it arises through the interplay of four factors:
-1. Independent verification of each transaction
-2. Independent aggregation of those transactions into new blocks, which are added to the blockchain if PoW is demonstrated
-3. Independent verification of new blocks and assembly to the blockchain
-4. Independent selection by each node of the chain with the most cumulative computation demonstrated by PoW 
 
-**In Other Words:**
-1. All transactions are checked
-2. Transactions are independently selected to form new blocks and the solution to the PoW is checked
-3. All new blocks are checked
-4. If there are two simultaneous chains, the one with the largest computation proof is selected
+1. Independent verification of each transaction.
+2. Independent aggregation of those transactions into new blocks, which are added to the blockchain if PoW is demonstrated.
+3. Independent verification of new blocks and assembly to the blockchain.
+4. Independent selection by each node of the chain with the most cumulative computation demonstrated by PoW.
+
+In other words:
+
+1. All transactions are checked.
+2. Transactions are independently selected to form new blocks and the solution to the PoW is checked.
+3. All new blocks are checked.
+4. If there are two simultaneous chains, the one with the largest computation proof is selected.
 
 ### Independent Verification of Transactions
 
-- Invalid transactions are not propagated to peers; some of the criteria to verify:
-  - Matching transaction in the pool must exist
-  - Matching output & input values, all correctly referenced and signed
-  - Syntax and data structure
-  - Size under limits
-  - Output amount in range [21m, dust]
-  - Correct `nLocktime` & `nSequence`
-  - ...
+Invalid transactions are not propagated to peers; some of the criteria to verify are the following:
 
-- Conditions might change over time to handle:
-  - Other types of transactions
-  - Address new denial-of-service attacks
+- Matching transaction in the pool must exist.
+- Matching output & input values, all correctly referenced and signed.
+- Syntax and data structure.
+- Size under limits.
+- Output amount in range `[dust, 21m]`.
+- Correct `nLocktime` & `nSequence`
+- ...
+
+These validation conditions might change over time to handle:
+
+- Other types of transactions.
+- Address new denial-of-service attacks.
 
 ### Aggregating Transactions into Blocks
 
-- While mining, nodes receive new transactions and add them to the transaction pool if valid
-- The first transaction added to a new block is the coinbase transaction:
-  - Generates new bitcoin instead of spending existing UTX
+While mining, nodes receive new transactions and add them to the transaction pool if valid.
+The first transaction added to a new block is the *coinbase* transaction:
+It generates new bitcoin instead of spending existing UTXO.
+Altogether, the winning miner receives:
 
-Os
-  - Winning miner receives:
-    1. The reward, which varies in function of halving cycle (2020 -> 6.25)
-    2. The fees of all included transactions: fees = sum(inputs) - sum(outputs)
-    - All these numbers must match to be accepted as valid!
-  - Coinbase transaction has a specific structure that must be satisfied
-    - There's a field which can be used as desired
-    - Satoshi wrote in that field the famous:
-      ```plaintext
-      "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
-      ```
+1. The reward, which varies in function of halving cycle (e.g., 2024-28 -> 3.125).
+2. The fees of all included transactions: fees = sum(inputs) - sum(outputs).
 
-- After conforming and selecting the transactions for the new block, the header must be created - which must be correct, too.
+All these numbers must match to be accepted as valid!
+The *coinbase* transaction has a specific structure that must be satisfied.
 
-### Mining the Block
+- It doesn't have an unlocking script (aka. `scriptSig`).
+- It has a `"coinbase"` field which can be used as desired.
+- Satoshi wrote in that field the famous `"The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"`.
+  - Check the [Genesis Block](#genesis-block) section to see how this can be decrypted.
+- Miners, often write a desired text of the value of the `ExtraNonce`, which extend the search for the correct hash; this concept is explained below.
 
-Mining is the process of hashing the block header repeatedly, changing one parameter until the resulting hash is below a specific target.
+After conforming and selecting the transactions for the new block, the header must be created - which must be correct, too.
 
-```plaintext
+### Mining the Block: The Power-of-Work (PoW) Algorithm
+
+Mining is the process of hashing the block header repeatedly, changing the value of the `nonce` parameter until the resulting hashed output is below a specific target.
+
+```
 while (hash(header + nonce) < target)
     nonce++
-if we get out of the loop, we found the valid nonce value!
 ```
 
-**Key Idea:** The value of the target is inversely proportional to the difficulty.
-- Decreasing the target value makes finding the nonce more difficult -> more trials must be performed, more computational effort is expected
-- Decreasing the target means increasing the range of possible nonce values
-  - Any value in the range can be correct
+If we get out of the loop, we found the valid nonce value!
 
-**Note:** Hash < target can be understood as how many 0s the hash must have as preceding digits.
-- The resulting hash is always 256 bits.
+Key Ideas: 
 
-**IMPORTANT Concepts:** Difficulty, Hash Power
-- Number of hashes (of the header) per second
-- Bigger difficulty (thus, hashing power) means more electricity consumption
-- **Interestingly:** Difficulty doesn't increase with the number of transactions, but with the accumulated power of mining nodes
+- The value of the target is inversely proportional to the difficulty; usually the target starts with a number of `0` values, and we require the hash to be below that value: `000000000absgt...`. The more `0`s in the beginning, the smaller the target.
+- Decreasing the target value makes finding the nonce more difficult -> more trials must be performed, more computational effort is expected.
+- Decreasing the target means increasing the range of possible nonce values.
+  - Any value in the range can be correct.
+- The resulting hash is always 256 bits, i.e., 32 bytes.
+
+**IMPORTANT Concept: Difficulty, Hash Power:**
+
+- The hash power is the number of hashes (of the header) per second.
+- Bigger difficulty (thus, hashing power) means more electricity consumption.
+- Interestingly, Difficulty doesn't increase with the number of transactions, but with the accumulated power of mining nodes.
+
+#### Simulations
+
+The notebook [`Bitcoin_Calculations.ipynb`](./Bitcoin_Calculations.ipynb) has a small simulation of the PoW algorithm:
+
+```python
+import hashlib
+import time
+
+def proof_of_work(message, difficulty):
+    """
+    Implements the Proof-of-Work algorithm.
+    
+    Args:
+    - message (str): The base message to hash.
+    - difficulty (int): The number of leading zeros required in the hash.
+    
+    Returns:
+    - nonce (int): The nonce that produces a valid hash.
+    - hash_result (str): The valid hash.
+    """
+    # Define the target: a hash with `difficulty` leading zeros
+    target = "0" * difficulty
+    
+    # Start with nonce = 0
+    nonce = 0
+    
+    print(f"Starting Proof-of-Work with difficulty: {difficulty}...")
+    start_time = time.time()
+
+    while True:
+        # Concatenate message with nonce
+        data = f"{message}{nonce}"
+        
+        # Calculate SHA256 hash
+        hash_result = hashlib.sha256(data.encode()).hexdigest()
+        
+        # Check if hash meets the difficulty target
+        if hash_result.startswith(target):
+            elapsed_time = time.time() - start_time
+            return nonce, hash_result, elapsed_time
+        
+        # Increment nonce and try again
+        nonce += 1
+
+# Run the Proof-of-Work algorithm
+message = "I am Satoshi Nakamoto"
+difficulty = 7  # Number of leading zeros required
+nonce, valid_hash, elapsed_time = proof_of_work(message, difficulty)
+# Print the result
+print(f"Difficulty: {difficulty}")
+print(f"Nonce: {nonce}")
+print(f"Hash: {valid_hash}")
+print(f"Time taken: {elapsed_time:.2f} seconds")
+```
+
+This outputs:
+
+```
+Starting Proof-of-Work with difficulty: 7...
+Proof-of-Work found! Nonce: 39991487, Hash: 0000000ba5f1e30a098f9a8c232a90de8bd067547e453826beafdda9799139dd
+Time taken: 49.96 seconds
+Difficulty: 7
+Nonce: 39991487
+Hash: 0000000ba5f1e30a098f9a8c232a90de8bd067547e453826beafdda9799139dd
+Time taken: 49.96 seconds
+```
+
 
 ### Difficulty Adjustment
 
-- Difficulty is adjusted every 2016 blocks = 2 weeks
+- Difficulty is adjusted every 2016 blocks, i.e., 2 weeks.
   - Bitcoin is designed to have 1 block every 10 minutes
-  - If more mining nodes appear and hardware is improved, the total hashing power increases
-    - Therefore, blocks would be mined faster
-    - Conversely, some nodes might stop mining because it's not profitable
+  - If more mining nodes appear and hardware is improved, the total hashing power increases.
+    - Therefore, blocks would be mined faster.
+    - Conversely, some nodes might stop mining because it's not profitable.
   - Every 2 weeks, retargeting is done by all nodes:
-    ```plaintext
+    ```
     difficulty adjustment = time required for 2016 blocks / 2016 * 10
     ```
 
