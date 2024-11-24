@@ -2144,6 +2144,8 @@ Bitcoin does not have a formal or centralized roadmap, as its development is dec
 
 ## Chapter 11: Bitcoin Security
 
+<!-- HERE -->
+
 ### Security Principles: Centralized vs Decentralized Systems
 
 - **Centralized Models:** Control access to vet bad actors.
