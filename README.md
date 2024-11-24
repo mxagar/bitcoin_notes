@@ -2,12 +2,11 @@
 
 This repository contains my **personal notes** collected while studying different aspects of Bitcoin.
 
-The most important source of information is the **technical book** "Mastering Bitcoin", Antonopoulos, O'Reilly: [`bitcoin_antonopoulos/`](./bitcoin_antonopoulos/).
+The repository is divided in these folders:
 
-Additionally, I have also covered other topics from different sources:
-
-- Practical technical notes in [`bitcoin_practical/`](./bitcoin_practical/); e.g., how to set up a personal node, best practices, etc.
-- Non-technical notes related to economics, philosophy and psychology in [`bitcoin_philosophy_literature/`](./bitcoin_philosophy_literature/).
+- [`bitcoin_technical_theory/`](./bitcoin_technical_theory/): Technical contents about how the Bitcoin network works. The most important source of information is the book ["Mastering Bitcoin", by Antonopoulos, O'Reilly](https://github.com/bitcoinbook/bitcoinbook/tree/develop).
+- [`bitcoin_practical/`](./bitcoin_practical/): Practical, technical notes about how to interact with the Bitcoin network; e.g., how to set up a personal node, best practices, etc.
+- [`bitcoin_economics_philosophy/`](./bitcoin_economics_philosophy/): Non-technical notes related to economics, philosophy and psychology.
 
 See also:
 
