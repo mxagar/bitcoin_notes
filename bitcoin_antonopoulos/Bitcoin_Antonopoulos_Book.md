@@ -1959,88 +1959,188 @@ In any case, it is clear that a larger amount of miners:
 
 ### Mining Pools
 
-Miners can join mining pools instead of being solo.
+Miners can join mining pools instead of being solo:
+
 - Hashing power is shared among all peers in the pool.
 - Rewards are shared in proportion to the provided hashing power.
 - Pools are open to anyone.
 - Pools operated/managed by pool operators.
 
-**P2Pool:** Decentralized mining pool operator protocol
+**P2Pool:** Decentralized mining pool operator protocol:
+
 - Centralized pool manager could manipulate the shares.
 - This protocol avoids that by implementing a parallel blockchain-like system.
 
-### Consensus Attacks
+### Consensus Attacks, aka. 51% Attacks
 
-**Theoretical Consensus Attacks:**
+There exist some theoretical consensus attacks that could endanger the network:
+
 - Organized attacks or miners with enough hashing power.
-- **Attacks Possible:** Only on the blocks being mined at the moment, not past blocks.
-- **Also Known as "51% Attacks":**
+- Attacks which would be possible: Only on the blocks being mined at the moment, not past blocks.
+- These attacks are also known as **"51% Attacks"**:
   - A group of miners with 51% of the total hashing power could cause them.
-  - **Theoretically:** Even with 30% of the total hashing power, attacks are possible.
+  - Theoretically, even with 30% of the total hashing power, attacks are possible.
 
-**Types of Consensus Attacks:**
-1. **Double Spend:**
+There are two types of Consensus or 51% Attacks:
+
+1. **Double Spend**:
    - Group of miners coordinates to spend again the amount already spent in an unconfirmed transaction.
-   - Recommended to wait for 6 confirmations after transferring a significant amount.
-2. **Denial-of-Service:**
+   - Therefore: Recommended to wait for 6 confirmations after transferring a significant amount.
+2. **Denial-of-Service**:
    - Specific set of addresses are blacklisted.
 
-**Possible Attack Scenario:** A corporation or state acquires many mining nodes and causes denial-of-service attacks to addresses, stopping Bitcoin operations.
+Possible attack scenario/example: A corporation or state acquires many mining nodes and causes denial-of-service attacks to addresses, stopping Bitcoin operations.
 
 ### Changing the Consensus Rules
 
-**Consensus Rules:**
-- Invariable in the short term but NOT in the long term.
+Consensus rules are the ones which determine the validity of
+
+- the transactions
+- and the blocks.
+
+Consensus rules are invariable in the short term but NOT in the long term!
+
+Consensus rules can change in *hard forks and soft forks*:
+
 - **Hard Forks:** Consensus rules change, creating new chains.
-  - **Stages:**
+  - Stages:
     - Node software must be changed (forked),
     - Network forks,
     - Miners fork,
     - Chain forks (splits)
-  - **Result:** A new coin and split hashing power.
-    - **Example:** Bitcoin Cash (contentious).
-    - **Consequence:** BTC coins prior to fork are available in the new chain!
+  - Result: A new coin and split hashing power.
+    - Example: Bitcoin Cash (contentious).
+    - Consequence: BTC coins prior to fork are available in the new chain!
 - **Soft Forks:** Consensus rules change but are forward-compatible.
-  - **Implementation:** Unupgraded clients continue in the same chain with the new rules.
+  - They are not real forks, because now new chain is created.
+  - Un-upgraded clients continue in the same chain with the new rules.
+  - Implementation can happen in different ways:
+    - Changing the code of the rules.
+    - With NOP operations: There exist 10 empty opcodes (NOP1 - NOP10) defined for future use.
+      - Some already defined, e.g., NOP2 = `OP_CHECKLOCKTIMEVERIFY`.
+    - Other mechanisms (e.g., SegWit).
 
-**Soft Forks:**
-- Consensus rules change, but no new chain appears because new blocks/transactions are valid for old nodes too (nodes with old consensus rules).
-- **Implementation:**
-  - Changing the code of the rules.
-  - With NOP operations.
-  - Other mechanisms (e.g., SegWit).
+#### Notes of Soft Forks
 
-**NOP Opcodes:**
-- 10 empty opcodes (NOP1 - NOP10) defined for future use.
-  - Some already defined, e.g., NOP2 = `OP_CHECKLOCKTIMEVERIFY`.
+Types:
 
-**Criticisms of Soft Forks:**
-- **Based on NOP Codes:** Relatively uncontroversial since NOPs were conceived for that.
-- **Other Types:**
-  - Can cause technical debt (complex to achieve).
+- Based on NOP Codes: These are relatively uncontroversial since NOPs were conceived for that.
+- Other types receive some criticism:
+  - They can cause technical debt (complex to achieve).
   - Validation is relaxed: un-upgraded nodes are not validating the full range of consensus rules.
   - Irreversible upgrades can cause loss of funds distributed with old rules.
 
-**Signaling: Method to Allow Miners to Signal Which Consensus Set They Support**
+#### Signaling Support for Consensus Changes
+
+When a change of consensus rules is discussed, the support of the miners is asked; at the end of the day, they are the ones which will implement the change in practice by updating the node or not. This occurs via **signaling**:
+
 - When a change is proposed and implemented, miners need to signal if they agree or not.
-- **Incorporating a New Version (e.g., from consensus set n to n+1):**
+- Incorporating a new version (e.g., from consensus set n to n+1):
   - If 750/1000 last blocks contain the signal for n+1, n+1 is default, but n is still compatible.
   - If 950/1000 last blocks contain the signal for n+1, n+1 is default, n is NOT compatible anymore.
-- **Field:** Block version used for signaling.
+- The block's `version` field os used for signaling.
   - Initially, integer value used (version = 1, 2, ...), each number indicating support for a new BIP.
   - Later, interpreted as a bit field (BIP-9).
     - Several (29) changes signaled simultaneously.
     - Start and end time for signaling specified.
 
-**Questions:**
-- Organization/structure behind?
-- Who proposes BIPs?
-- Who chooses which BIPs to implement?
-- Who finances them?
-- Who controls the GitHub account?
-- How are changes/intentions communicated?
-- Is there a roadmap?
-- **Address these questions when the chapter/appendix about BIPs is analyzed.**
+#### Questions
+
+##### 1. Organization/Structure Behind Bitcoin Development
+
+Bitcoin has no central authority or formal organizational structure. Instead, it relies on a decentralized and open-source development process. Key contributors include:
+
+- Bitcoin Core Developers: A group of volunteer developers who maintain and update Bitcoin Core, the reference implementation of the Bitcoin protocol.
+- Community: Developers, miners, businesses, and users who participate in discussions, propose changes, and provide feedback.
+
+Bitcoin development operates through a meritocratic and consensus-driven process, where ideas are discussed and improved collectively.
+
+##### 2. Who Proposes BIPs?
+
+Anyone can propose a Bitcoin Improvement Proposal (BIP). The process is:
+
+- BIP Author: A developer or community member drafts a BIP document describing a proposed change or new feature.
+- Proposal Format: The BIP must follow a specific format, including a title, author, abstract, and technical details.
+- Review and Feedback: The proposal is shared with the community (e.g., on mailing lists or forums like the Bitcoin-dev mailing list) for discussion and feedback.
+- Championing: If the idea gains support, the author may revise it based on feedback.
+
+##### 3. Who Chooses Which BIPs to Implement?
+
+The decision to implement a BIP is decentralized and consensus-based:
+
+1. Bitcoin Core Developers: 
+   - They evaluate the technical feasibility, security, and potential impact of a BIP.
+   - A BIP may be merged into Bitcoin Core if the majority of developers agree.
+
+2. Miners and Node Operators:
+   - Changes to consensus rules require network-wide adoption.
+   - Miners and node operators signal support by upgrading their software.
+   - For contentious changes (e.g., hard forks), miners, businesses, and users decide which chain to support.
+
+3. Community:
+   - Proposals often require broad community agreement to proceed.
+
+##### 4. Who Finances Bitcoin Development?
+
+Bitcoin development is funded through various decentralized means:
+
+1. Donations:
+   - Individuals and organizations donate directly to developers or development teams.
+
+2. Grants:
+   - Companies and foundations provide grants to developers (e.g., Blockstream, Chaincode Labs, Brink, and Square Crypto).
+
+3. Sponsorships:
+   - Some Bitcoin developers are employed by companies that support their work on the protocol.
+
+4. Self-Funding:
+   - Volunteer developers often contribute unpaid time and effort.
+
+##### 5. Who Controls the GitHub Account?
+
+The Bitcoin Core GitHub repository is the central repository for Bitcoin Core's code. Control is distributed:
+
+1. Repository Maintainers:
+   - A small group of trusted maintainers (selected by consensus among developers) have permission to merge pull requests.
+   - These maintainers are stewards of the codebase but do not unilaterally decide which changes are accepted.
+
+2. Community Oversight:
+   - The Bitcoin community monitors changes and discussions on GitHub.
+
+##### 6. How Are Changes/Intentions Communicated?
+
+Communication happens through several channels:
+
+1. Mailing Lists:
+   - The Bitcoin-dev mailing list is a key platform for technical discussions and proposal announcements.
+
+2. GitHub:
+   - Developers discuss and review pull requests and issues in the Bitcoin Core repository.
+
+3. Conferences and Meetups:
+   - Developers and stakeholders often discuss ideas at Bitcoin-related events.
+
+4. Social Media and Forums:
+   - Platforms like Reddit, Twitter, and the Bitcoin Talk forum are used for broader community engagement.
+
+5. Blogs and Research Papers:
+   - Detailed explanations of proposals or changes are sometimes shared via blogs or academic papers.
+
+##### 7. Is There a Roadmap?
+
+Bitcoin does not have a formal or centralized roadmap, as its development is decentralized and community-driven. However:
+
+1. Long-Term Goals:
+   - Scalability improvements (e.g., Lightning Network, Taproot).
+   - Enhancing privacy (e.g., Schnorr signatures, CoinJoins).
+   - Reducing resource usage (e.g., UTXO set management).
+
+2. BIP Process:
+   - Proposals often signal the direction of development.
+
+3. Community Consensus:
+   - The roadmap is shaped by ongoing discussions and the adoption of widely supported changes.
+
 
 ## Chapter 11: Bitcoin Security
 
