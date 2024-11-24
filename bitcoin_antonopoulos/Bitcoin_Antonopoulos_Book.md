@@ -1575,8 +1575,6 @@ echo "04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c
 
 ### Merkle Trees
 
-<!--HERE-->
-
 A Merkle tree is a binary hash tree that hashes the transactions of a block, summarizing them.
 That is, it is a binary tree which contains cryptographic hashes.
 It is computed by recursively double-hashing pairs of transactions or hashed transaction pairs, bottom-up.
@@ -1745,18 +1743,21 @@ After conforming and selecting the transactions for the new block, the header mu
 
 ### Mining the Block: The Power-of-Work (PoW) Algorithm
 
-Mining is the process of hashing the block header repeatedly, changing the value of the `nonce` parameter until the resulting hashed output is below a specific target.
+Mining is the process of hashing the block header repeatedly, changing the value of the `nonce` parameter until the resulting hashed output is below a specific **target**.
 
-```
-while (hash(header + nonce) < target)
-    nonce++
+```python
+nonce = 0
+while (hash(header + nonce) < target):
+    nonce += 1
 ```
 
 If we get out of the loop, we found the valid nonce value!
 
 Key Ideas: 
 
-- The value of the target is inversely proportional to the difficulty; usually the target starts with a number of `0` values, and we require the hash to be below that value: `000000000absgt...`. The more `0`s in the beginning, the smaller the target.
+- The **nonce** is an integer of 32 bits, i.e., its maximum value is `2^32 = 4,300 million`.
+- Hashing produces a 32-byte string.
+- The value of the **target** is inversely proportional to the **difficulty**; the target is defined as string which starts with a number of `0` values, and we require the hash to be below that value: `000000000absgt...`. The more `0`s in the beginning, the smaller the target is.
 - Decreasing the target value makes finding the nonce more difficult -> more trials must be performed, more computational effort is expected.
 - Decreasing the target means increasing the range of possible nonce values.
   - Any value in the range can be correct.
@@ -1789,6 +1790,10 @@ def proof_of_work(message, difficulty):
     - hash_result (str): The valid hash.
     """
     # Define the target: a hash with `difficulty` leading zeros
+    # In practice, this is not implemented like that,
+    # but instead, the new difficulty is comptued by observing the excess/less time required
+    # in the last 2016 blocks, and the new difficulty changes the target
+    # with a factor
     target = "0" * difficulty
     
     # Start with nonce = 0
@@ -1835,29 +1840,52 @@ Hash: 0000000ba5f1e30a098f9a8c232a90de8bd067547e453826beafdda9799139dd
 Time taken: 49.96 seconds
 ```
 
-
 ### Difficulty Adjustment
 
-- Difficulty is adjusted every 2016 blocks, i.e., 2 weeks.
-  - Bitcoin is designed to have 1 block every 10 minutes
+The hash power of the network is constantly changing, because miners can enter/exit the miner pools.
+
+- Therefore, the `difficulty` is adjusted every 2016 blocks, i.e., 2 weeks.
+  - Bitcoin is designed to have 1 block every 10 minutes.
   - If more mining nodes appear and hardware is improved, the total hashing power increases.
     - Therefore, blocks would be mined faster.
     - Conversely, some nodes might stop mining because it's not profitable.
-  - Every 2 weeks, retargeting is done by all nodes:
-    ```
-    difficulty adjustment = time required for 2016 blocks / 2016 * 10
-    ```
+  - Every 2 weeks, retargeting is done by all nodes, proportionally to the excess/less time required wrt. the expected one.
+- The `difficulty` started being `1` in the first block.
+- The `max_target` value is defined as `2^244 - 1`; this is smaller than the maximum 32-byte string, due to encoding issues.
 
-**Question:** How is the global network difficulty fractioned to the mining nodes?
-- If all nodes start with the same nonce and increase linearly, the total difficulty is not fractioned, is it?
+```python
+# Difficulty Adjustement
+factor = time_last_2016_blocks / (2016 * 10)
+factor = 4.0 if factor > 4.0 else factor
+factor = 0.25 if factor < 0.25 else factor
+new_difficulty = current_difficulty * factor
+
+# Target adjustement: The target is the hashed value of 32-bytes
+initial_difficulty = 1
+max_target = 2**(224) - 1
+difficulty = max_target / current_target
+new_target = max_target / new_difficulty
+```
+
+### ExtraNonce
+
+The `ExtraNonce` is a mechanism miners use to extend the search space when trying to find a valid hash for a Bitcoin block. It is not part of the Bitcoin block header directly but is included in the `coinbase` transaction (the first transaction in a block, which rewards the miner).
+
+- The nonce field in the Bitcoin block header is only 32 bits: `2^32 = 4,300 millions`.
+- For high-difficulty blocks, miners often exhaust all possible values of the nonce without finding a valid hash.
+- When all possible nonce values are exhausted, miners need to modify other parts of the block to continue hashing.
+- The `ExtraNonce`, located in the `coinbase` transaction, provides an additional adjustable value that effectively resets the nonce range.
 
 ### Validating a New Block
 
-Every time a miner finds the solution (nonce) that matches the PoW (hash < target), it packs the block and sends it to peers. If the block is not completely correct, it is discarded.
+Every time a miner finds the solution (`nonce`) that matches the PoW (`hash(header + nonce) < target`), it packs the block and sends it to peers. If the block is not completely correct, it is discarded.
+Some Criteria:
 
-**Some Criteria:**
-- Syntactically valid
-- Hash(header + nonce) < target
+- Syntactically valid.
+- `hash(header + nonce) < target`
+- Correct timestamp
+- Block size within acceptable limits
+- First transaction is `coinbase` transaction
 - ...
 
 Independent validation assures that miners cannot cheat.
@@ -1866,40 +1894,68 @@ Independent validation assures that miners cannot cheat.
 
 If two valid blocks A & B are mined almost simultaneously, they are propagated to the whole network. Part of the nodes will include A, part B, but eventually both A & B will arrive to all nodes.
 
-**In Such Cases:**
+In Such Cases:
+
 - Forks are originated in the blockchain, usually resolved within a block creation time (10 minutes) - if not in one block, then in two.
-  - 1-block side branches appear daily, 2-block branches every few weeks
-- **Resolution:** Select the branch with the largest demonstrated computation:
-  - Longest height
-  - Largest accumulated PoW (nonce - hash)
-- If a valid block is received without a parent, it goes to the orphan block pool
-  - Happens when the child arrives before the parent
-  - Situation is resolved when the parent arrives
+  - 1-block side branches appear daily, 2-block branches every few weeks.
+- Resolution: Select the branch with the largest demonstrated computation:
+  - Longest height.
+  - Largest accumulated PoW (nonce - hash).
+- If a valid block is received without a parent, it goes to the orphan block pool:
+  - Happens when the child arrives before the parent.
+  - Situation is resolved when the parent arrives.
 
-**Consensus:** The chain with the largest cumulative work wins.
+Therefore, the **consensus** is that the chain with the largest cumulative work wins.
 
-**Design Compromise:**
-- 10-minutes new block design balances:
-  - Fast confirmation times
-  - Lower probabilities of forks due to propagation delays
+
+The design decision of having a new block every 10-minutes is a compromise between:
+
+- Fast confirmation times.
+- Lower probabilities of forks due to propagation delays.
 
 ### Mining and the Hashing Race
 
 Hashing power (Hash/second, H/s) increases exponentially (2x - 14500x per year), driven by:
-- The number of mining nodes
-- The performance of the hardware used
 
-**Hardware Evolution:**
-- **2009-2011:** CPUs replaced by GPUs & FPGAs
-- **2012-2014:** GPUs & FPGAs replaced by custom ASICs
-- **Current Limit:** Technological advancements seem to have plateaued
-  - Factors:
-    - Number of nodes
-    - Density of chips and heat dissipation
-    - Electricity price for profitability
+- The number of mining nodes.
+- The performance of the hardware used.
 
-As hashing power increases, difficulty increases similarly.
-- **Measurement:** Difficulty as a ratio compared to the first block.
+Hardware Evolution:
+
+- 2009-2011: CPUs replaced by GPUs & FPGAs
+- 2012-2014: GPUs & FPGAs replaced by custom ASICs
+- Current Limit: Technological advancements seem to have plateaued. Factors:
+  - Number of nodes.
+  - Density of chips and heat dissipation.
+  - Electricity price for profitability.
+
+As hashing power increases, `difficulty` increases similarly.
+Note that since the initial `difficulty = 1`, the `current_difficulty` refers to how much more *difficult* it is to mine a block wrt. the first block.
+
+#### Notes on the Hash Power
+
+I understand that adding miners wouldn't necessarily linearly reduce the time to find a block because the mining process is probabilistic and each miner works independently, i.e., each miner starts and tries the `nonce` counter independently.
+
+Therefore, we could distinguish two hash powers:
+
+- The independent hash power of a miner, which is very relevant for reaching the `target` as soon as possible.
+- The aggregated network hash power, i.e., the sum of the hash power of all miners, which is often used/cited as the cause of power consumption; if the miners are similar and all work isolated from each other, the total network hash power should not affect proportionally the speed with which the same `target` can be reached.
+
+However, in practice, the network hash power affects the `difficulty` and the speed to reach the `target` quite proportionally. Here's a list I came up which would explain that:
+
+- Not all miners are the same; there are many HW differences. Most efficient miners are which get the reward.
+- Miners compete with each other.
+- Miners can join and search for the `nonce` in parallel, i.e., each of them tries a different part of the search space.
+- Electricity costs vary in different parts of the world; sometimes electricity can be very cheap and green (e.g., in hydraulic generators in China), which enables a deployment of a larger hash power.
+- Country regulations are also relevant: sometimes mining can be banned in a region, and a fraction of miners moved to another one.
+- Chip supply affects also the miner production.
+- ...
+
+In any case, it is clear that a larger amount of miners:
+
+- Increases the hash power.
+- Increases the global energy consumption.
+- Increases the security of the network: the hash power/energy consumption is related to the amount of power necessary to hack the network.
 
 ### Mining Pools
 
