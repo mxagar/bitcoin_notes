@@ -2144,26 +2144,24 @@ Bitcoin does not have a formal or centralized roadmap, as its development is dec
 
 ## Chapter 11: Bitcoin Security
 
-<!-- HERE -->
-
 ### Security Principles: Centralized vs Decentralized Systems
 
-- **Centralized Models:** Control access to vet bad actors.
+- Centralized Models/systems (e.g., traditional bank): Control access to vet bad actors.
   - Bitcoin pushes responsibility and control to the user; the system itself is secured through Proof-of-Work.
-- **Centralized Systems:** Need to encrypt their communications to avoid leaking sensitive information.
+- Centralized Models/Systems: Need to encrypt their communications to avoid leaking sensitive information.
   - Bitcoin doesn't need to encrypt communications; no private information is leaked in transactions, and transaction info cannot be used to steal.
   - Transactions can be executed on unsecured WiFi.
-  - **BUT:** Users are responsible for storing their keys securely.
+  - BUT: Users are responsible for storing their keys securely.
 
 ### Root of Trust
 
-- **Traditional Security Architecture:** Built in layers.
-  - The core layer is the root, the most simple part, and the one most trusted.
-  - Outer layers add complexity and are
+- Traditional security architecture is built in layers.
+- The core layer is the root, the most simple part, and the one most trusted.
+- Outer layers add complexity and are less trusted.
+- There is one central issue: The core layer/root can be attacked.
+- **In Bitcoin, the core layer are the private keys** - keeping private keys safe is the most important part of the security.
 
- less trusted.
-  - **Main Issue:** The core layer/root can be attacked.
-  - **Bitcoin Core Layer:** Private keys - keeping private keys safe is the most important part of the security.
+<!-- HERE -->
 
 **Three Pillars of Bitcoin Security:**
 1. **Private Keys:**
