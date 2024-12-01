@@ -1,11 +1,142 @@
 # Mastering Bitcoin (Antonopoulos Book): My Notes
 
-These a re my notes of the book **"Mastering Bitcoin", by A. Antonopoulos (O'Reilly)**.
+These are my notes of the book [**"Mastering Bitcoin", by Andreas M. Antonopoulos (O'Reilly, 2nd Edition)**](https://www.oreilly.com/library/view/mastering-bitcoin-2nd/9781491954379/).
 
-Although I follow the general structure of the book, I have modified/extended some sections, e.g., using `bitcoin-cli` in a toy node, adding self-made diagrams, re-framing some explanations, etc.
+Although I follow the general structure of the book, I have modified/extended some sections, e.g.,
+
+- using `bitcoin-cli` in a toy node,
+- adding self-made diagrams, 
+- re-framing some explanations, etc.
+
+Additionally, I have and will add new extra sections with new concepts (properly citing the sources).
+
+Finally, check also my notes on
+
+- Technical, practical aspects: [`Bitcoin_Practical_Guide.md`](../bitcoin_practical/Bitcoin_Practical_Guide.md)
+- Legal aspects: [`Bitcoin_Legal_Guide.md`](../bitcoin_practical/Bitcoin_Legal_Guide.md)
+- Economics and philosophical topics: [`Bitcoin_NonTechnical_Notes.md`](../bitcoin_economics_philosophy/Bitcoin_NonTechnical_Notes.md)
 
 Mikel Sagardia, 2020.  
 No guarantees.
+
+## Table of Contents
+
+- [Mastering Bitcoin (Antonopoulos Book): My Notes](#mastering-bitcoin-antonopoulos-book-my-notes)
+  - [Table of Contents](#table-of-contents)
+  - [Chapter 1: Introduction](#chapter-1-introduction)
+    - [Setup a Node](#setup-a-node)
+  - [Chapter 2: How Bitcoin Works](#chapter-2-how-bitcoin-works)
+    - [Basics](#basics)
+    - [Bitcoin Explorers](#bitcoin-explorers)
+    - [Transactions](#transactions)
+      - [Transaction Chains](#transaction-chains)
+      - [Making Change](#making-change)
+      - [Common Transaction Forms](#common-transaction-forms)
+    - [Constructing a Transaction](#constructing-a-transaction)
+    - [Mempool: Memory Pool](#mempool-memory-pool)
+    - [Bitcoin Mining](#bitcoin-mining)
+    - [Spending the Transaction](#spending-the-transaction)
+  - [Chapter 3: Bitcoin Core: The Reference Implementation](#chapter-3-bitcoin-core-the-reference-implementation)
+    - [Setup a Bitcoin Node](#setup-a-bitcoin-node)
+    - [Bitcoin CLI and API 101](#bitcoin-cli-and-api-101)
+      - [Basic `bitcoin-cli` Commands](#basic-bitcoin-cli-commands)
+      - [Enable RPC Access in Node](#enable-rpc-access-in-node)
+      - [Examples in Python](#examples-in-python)
+  - [Chapter 4: Keys, Addresses](#chapter-4-keys-addresses)
+    - [Public Key Cryptography\*\* (Not in the Book)](#public-key-cryptography-not-in-the-book)
+    - [Private \& Public Keys](#private--public-keys)
+    - [Public Keys Created by Elliptic Curve Multiplication](#public-keys-created-by-elliptic-curve-multiplication)
+    - [UTXOs](#utxos)
+    - [Fees](#fees)
+    - [Transaction Scripts and Script Language](#transaction-scripts-and-script-language)
+    - [Digital Signatures](#digital-signatures)
+    - [Common Transactions and Strange Transactions](#common-transactions-and-strange-transactions)
+  - [Chapter 7: Advanced Transactions and Scripting](#chapter-7-advanced-transactions-and-scripting)
+    - [Multisignature Scripts](#multisignature-scripts)
+    - [Pay-to-Script-Hash (P2SH)](#pay-to-script-hash-p2sh)
+    - [Data Recording Outputs](#data-recording-outputs)
+    - [Timelocks](#timelocks)
+      - [`nLocktime`](#nlocktime)
+      - [`CHECKLOCKTIMEVERIFY` (CLTV)](#checklocktimeverify-cltv)
+    - [Relative Timelocks](#relative-timelocks)
+    - [Scripts with Flow Control](#scripts-with-flow-control)
+  - [Chapter 8: The Bitcoin Network](#chapter-8-the-bitcoin-network)
+    - [Types of Nodes](#types-of-nodes)
+    - [Bitcoin Relay Networks](#bitcoin-relay-networks)
+    - [Network Discovery](#network-discovery)
+    - [SPV Nodes (Simplified Payment Verification)](#spv-nodes-simplified-payment-verification)
+      - [Bloom Filters](#bloom-filters)
+    - [Encrypted and Authenticated Connections](#encrypted-and-authenticated-connections)
+    - [Transaction Pools](#transaction-pools)
+  - [Chapter 9: The Blockchain](#chapter-9-the-blockchain)
+    - [Block Structure](#block-structure)
+      - [Example](#example)
+    - [Genesis Block](#genesis-block)
+    - [Merkle Trees](#merkle-trees)
+    - [Other Bitcoin Blockchains](#other-bitcoin-blockchains)
+  - [Chapter 10: Mining and Consensus](#chapter-10-mining-and-consensus)
+    - [Bitcoin Economics and Currency Creation](#bitcoin-economics-and-currency-creation)
+      - [Inflation vs Deflation](#inflation-vs-deflation)
+    - [Decentralized (Emergent) Consensus](#decentralized-emergent-consensus)
+    - [Independent Verification of Transactions](#independent-verification-of-transactions)
+    - [Aggregating Transactions into Blocks](#aggregating-transactions-into-blocks)
+    - [Mining the Block: The Power-of-Work (PoW) Algorithm](#mining-the-block-the-power-of-work-pow-algorithm)
+      - [Simulations](#simulations)
+    - [Difficulty Adjustment](#difficulty-adjustment)
+    - [ExtraNonce](#extranonce)
+    - [Validating a New Block](#validating-a-new-block)
+    - [Assembling and Selecting Chains of Blocks](#assembling-and-selecting-chains-of-blocks)
+    - [Mining and the Hashing Race](#mining-and-the-hashing-race)
+      - [Notes on the Hash Power](#notes-on-the-hash-power)
+    - [Mining Pools](#mining-pools)
+    - [Consensus Attacks, aka. 51% Attacks](#consensus-attacks-aka-51-attacks)
+    - [Changing the Consensus Rules](#changing-the-consensus-rules)
+      - [Notes of Soft Forks](#notes-of-soft-forks)
+      - [Signaling Support for Consensus Changes](#signaling-support-for-consensus-changes)
+      - [Questions](#questions)
+        - [1. Organization/Structure Behind Bitcoin Development](#1-organizationstructure-behind-bitcoin-development)
+        - [2. Who Proposes BIPs?](#2-who-proposes-bips)
+        - [3. Who Chooses Which BIPs to Implement?](#3-who-chooses-which-bips-to-implement)
+        - [4. Who Finances Bitcoin Development?](#4-who-finances-bitcoin-development)
+        - [5. Who Controls the GitHub Account?](#5-who-controls-the-github-account)
+        - [6. How Are Changes/Intentions Communicated?](#6-how-are-changesintentions-communicated)
+        - [7. Is There a Roadmap?](#7-is-there-a-roadmap)
+  - [Chapter 11: Bitcoin Security](#chapter-11-bitcoin-security)
+    - [Security Principles: Centralized vs Decentralized Systems](#security-principles-centralized-vs-decentralized-systems)
+    - [Root of Trust](#root-of-trust)
+    - [Private Key Management](#private-key-management)
+    - [Pseudonymity and Privacy](#pseudonymity-and-privacy)
+    - [Proof-of-Work Security](#proof-of-work-security)
+    - [User Best Practices](#user-best-practices)
+  - [Chapter 12: Blockchain Applications](#chapter-12-blockchain-applications)
+    - [Blockchain Characteristics](#blockchain-characteristics)
+    - [Applications Beyond Bitcoin](#applications-beyond-bitcoin)
+      - [Financial Services](#financial-services)
+      - [Supply Chain Management](#supply-chain-management)
+      - [Identity Management](#identity-management)
+      - [Healthcare](#healthcare)
+      - [Voting Systems](#voting-systems)
+    - [Challenges and Considerations](#challenges-and-considerations)
+    - [Future Prospects](#future-prospects)
+  - [Chapter 13: Scaling Bitcoin](#chapter-13-scaling-bitcoin)
+    - [The Need for Scaling](#the-need-for-scaling)
+    - [Layer 1 Solutions](#layer-1-solutions)
+      - [Block Size Increase](#block-size-increase)
+      - [Segregated Witness (SegWit)](#segregated-witness-segwit)
+    - [Layer 2 Solutions](#layer-2-solutions)
+      - [The Lightning Network](#the-lightning-network)
+    - [Other Approaches](#other-approaches)
+      - [Sidechains](#sidechains)
+      - [Schnorr Signatures](#schnorr-signatures)
+    - [Ongoing Research](#ongoing-research)
+  - [Chapter 14: Bitcoin and the Future of Decentralization](#chapter-14-bitcoin-and-the-future-of-decentralization)
+    - [Bitcoin's Role in Decentralization](#bitcoins-role-in-decentralization)
+    - [Decentralized Finance (DeFi)](#decentralized-finance-defi)
+    - [Decentralized Governance](#decentralized-governance)
+    - [The Future of Bitcoin](#the-future-of-bitcoin)
+    - [Conclusion](#conclusion)
+  - [Extra: Topics to Add](#extra-topics-to-add)
+
 
 ## Chapter 1: Introduction
 
@@ -2294,15 +2425,15 @@ Bitcoin's popularity has highlighted its scalability limitations. The network ca
 
 #### Block Size Increase
 
-- **Proposal:** Increase the block size to allow more transactions per block.
-- **Challenges:**
+- Proposal: Increase the block size to allow more transactions per block.
+- Challenges:
   - Larger blocks require more storage and bandwidth.
   - Centralization risk as fewer nodes can handle larger blocks.
 
 #### Segregated Witness (SegWit)
 
-- **SegWit:** Separates transaction signatures from transaction data.
-- **Benefits:**
+- SegWit: Separates transaction signatures from transaction data.
+- Benefits:
   - Reduces transaction size, increasing block capacity.
   - Fixes transaction malleability.
   - Enables second-layer solutions like the Lightning Network.
@@ -2395,3 +2526,8 @@ Bitcoin's future is intertwined with the broader adoption of decentralized techn
 ### Conclusion
 
 Bitcoin has revolutionized the financial landscape, introducing the world to the possibilities of decentralized systems. As the technology evolves, it continues to inspire innovation and challenge traditional paradigms.
+
+## Extra: Topics to Add
+
+- [ ] Liquid Network
+- [ ] Taproot
