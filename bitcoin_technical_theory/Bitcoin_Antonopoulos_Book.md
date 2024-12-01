@@ -102,39 +102,23 @@ No guarantees.
         - [6. How Are Changes/Intentions Communicated?](#6-how-are-changesintentions-communicated)
         - [7. Is There a Roadmap?](#7-is-there-a-roadmap)
   - [Chapter 11: Bitcoin Security](#chapter-11-bitcoin-security)
-    - [Security Principles: Centralized vs Decentralized Systems](#security-principles-centralized-vs-decentralized-systems)
+    - [Security Principles: Centralized vs. Decentralized Systems](#security-principles-centralized-vs-decentralized-systems)
     - [Root of Trust](#root-of-trust)
     - [Private Key Management](#private-key-management)
     - [Pseudonymity and Privacy](#pseudonymity-and-privacy)
     - [Proof-of-Work Security](#proof-of-work-security)
     - [User Best Practices](#user-best-practices)
-  - [Chapter 12: Blockchain Applications](#chapter-12-blockchain-applications)
-    - [Blockchain Characteristics](#blockchain-characteristics)
-    - [Applications Beyond Bitcoin](#applications-beyond-bitcoin)
-      - [Financial Services](#financial-services)
-      - [Supply Chain Management](#supply-chain-management)
-      - [Identity Management](#identity-management)
-      - [Healthcare](#healthcare)
-      - [Voting Systems](#voting-systems)
-    - [Challenges and Considerations](#challenges-and-considerations)
-    - [Future Prospects](#future-prospects)
-  - [Chapter 13: Scaling Bitcoin](#chapter-13-scaling-bitcoin)
-    - [The Need for Scaling](#the-need-for-scaling)
-    - [Layer 1 Solutions](#layer-1-solutions)
-      - [Block Size Increase](#block-size-increase)
-      - [Segregated Witness (SegWit)](#segregated-witness-segwit)
-    - [Layer 2 Solutions](#layer-2-solutions)
-      - [The Lightning Network](#the-lightning-network)
-    - [Other Approaches](#other-approaches)
-      - [Sidechains](#sidechains)
-      - [Schnorr Signatures](#schnorr-signatures)
-    - [Ongoing Research](#ongoing-research)
-  - [Chapter 14: Bitcoin and the Future of Decentralization](#chapter-14-bitcoin-and-the-future-of-decentralization)
-    - [Bitcoin's Role in Decentralization](#bitcoins-role-in-decentralization)
-    - [Decentralized Finance (DeFi)](#decentralized-finance-defi)
-    - [Decentralized Governance](#decentralized-governance)
-    - [The Future of Bitcoin](#the-future-of-bitcoin)
-    - [Conclusion](#conclusion)
+  - [Chapter 12: Blockchain Applications and Lightning](#chapter-12-blockchain-applications-and-lightning)
+    - [Building Blocks (Primitives)](#building-blocks-primitives)
+    - [Some Applications from Building Blocks](#some-applications-from-building-blocks)
+    - [Colored Coins](#colored-coins)
+    - [Counterparty](#counterparty)
+    - [Payment Channels and State Channels](#payment-channels-and-state-channels)
+      - [Hash Time Lock Contracts (HTLC)](#hash-time-lock-contracts-htlc)
+    - [Routed Payment Channels: Lightning Network](#routed-payment-channels-lightning-network)
+      - [How It Works](#how-it-works)
+      - [Note on Lightning](#note-on-lightning)
+  - [Appendix D: Segregated Witness](#appendix-d-segregated-witness)
   - [Extra: Topics to Add](#extra-topics-to-add)
 
 
@@ -2211,6 +2195,15 @@ The decision to implement a BIP is decentralized and consensus-based:
 3. Community:
    - Proposals often require broad community agreement to proceed.
 
+Amir Taaki proposed the general process:
+
+- First, the BIP is drafted according to a template and discussed in the bitcoin mailing list: `bitcoin-dev@lists.linuxfoundation.org`.
+- Then, there is a public discussion and feedback is collected + draft modified.
+- The BIP editor approves/rejects proposals depending on effort, technical soundness, etc.
+- The current BIP editor is Luke Dashjr: `luke_bipeditor@dashjr.org`
+
+It seems it is like a self-organized community of developers who are publicly funded and who are gathered around the project along the time.
+
 ##### 4. Who Finances Bitcoin Development?
 
 Bitcoin development is funded through various decentralized means:
@@ -2226,6 +2219,8 @@ Bitcoin development is funded through various decentralized means:
 
 4. Self-Funding:
    - Volunteer developers often contribute unpaid time and effort.
+
+Some developers: Pieter Wuille, Wladimir van der Laan, Marco Falke, Matt Corallo, ... Jorge Timón (Cáceres). Jorge Timón is Co-Founder of Blockstream! (He also was an engineer there).
 
 ##### 5. Who Controls the GitHub Account?
 
@@ -2275,7 +2270,7 @@ Bitcoin does not have a formal or centralized roadmap, as its development is dec
 
 ## Chapter 11: Bitcoin Security
 
-### Security Principles: Centralized vs Decentralized Systems
+### Security Principles: Centralized vs. Decentralized Systems
 
 - Centralized Models/systems (e.g., traditional bank): Control access to vet bad actors.
   - Bitcoin pushes responsibility and control to the user; the system itself is secured through Proof-of-Work.
@@ -2291,20 +2286,6 @@ Bitcoin does not have a formal or centralized roadmap, as its development is dec
 - Outer layers add complexity and are less trusted.
 - There is one central issue: The core layer/root can be attacked.
 - **In Bitcoin, the core layer are the private keys** - keeping private keys safe is the most important part of the security.
-
-Three Pillars of Bitcoin Security:
-
-1. **Private Keys:**
-   - Most important: Private keys control the funds.
-   - If lost, funds are lost; if stolen, funds are stolen.
-   - BEST PRACTICES: Paper wallets, hardware wallets, backups.
-2. **Pseudonymity and Privacy:**
-   - Bitcoin transactions are public and pseudonymous.
-   - Key Issue: Reusing addresses - easy to track fund movement and owner identity.
-   - BEST PRACTICES: Use a new address for each transaction.
-3. **Proof-of-Work:**
-   - Miners secure the network and validate transactions.
-   - Key Issue: 51% attacks.
 
 ### Private Key Management
 
@@ -2334,200 +2315,174 @@ Privacy issues we face when using Bitcoin:
 
 ### User Best Practices
 
-1. Backups:
-   - Regularly back up private keys.
-   - Store backups in multiple locations.
-2. Encryption:
-   - Encrypt private keys and sensitive data.
-3. Cold Storage:
-   - Store significant amounts of bitcoin in cold storage.
-4. Multi-Signature:
-   - Use multi-signature wallets for added security.
+- Do not take funds off-chain unless necessary: the blockchain itself secures your funds; any off-chain system is less secure.
+- Physical bitcoin storage can be used: e.g., paper/metal wallets:
+  - Multiple copies, stored in safes.
+  - Cold storage = offline.
+- Hardware wallets should be used, e.g., Trezor, Coldcard, etc.
+- Balance risk: files can get lost! Make sure your files (digital or physical) won't.
+- Diversify risk: it is risky storing all the bitcoin in a single wallet!
 
-## Chapter 12: Blockchain Applications
+## Chapter 12: Blockchain Applications and Lightning
 
-<!-- HERE -->
+Bitcoin is built using simple concepts that serve as the foundation for more complex elements and applications. 
 
-Blockchain technology, the foundation of Bitcoin, has applications far beyond cryptocurrencies. Its properties of immutability, decentralization, and transparency offer revolutionary potential in various fields.
+- For example, Bitcoin relies solely on transactions and the blockchain—there are no explicit accounts, users, or balances in the protocol.
+- Similarly, the blockchain can serve as an **application platform**, offering trust services to applications, such as smart contracts.
 
-### Blockchain Characteristics
+### Building Blocks (Primitives) 
 
-- **Immutability:** Once data is recorded, it cannot be altered.
-- **Decentralization:** No central authority; distributed network of nodes maintains the blockchain.
-- **Transparency:** All transactions are publicly visible.
+Bitcoin's basic elements, or **primitives**, enable the development of a wide range of applications:
 
-### Applications Beyond Bitcoin
+- **No Double Spend**: UTXOs cannot be spent more than once.
+- **Immutability**: Transactions become immutable once confirmed.
+- **Neutrality**: Valid transactions are propagated regardless of origin or content.
+- **Secure Timestamping**: Achieved through the blockchain structure.
+- **Authorization**: Guaranteed with digital signatures.
+- **Auditability**: All transactions are publicly visible.
+- **Accounting**: Inherent in Bitcoin; inputs = outputs + fees.
+- **Transactions Don’t Expire**: They remain valid indefinitely.
+- **Atomic Transactions**: A transaction is either valid and confirmed or invalid and discarded.
+- **Discrete and Indivisible Units**: Transaction outputs cannot be divided; they can only be fully spent or unspent.
+- **Quorum of Control**: Multisignature scripts allow for M-of-N control over funds.
+- **Timelocked Transactions**: Transactions can be time-locked for future execution.
+- **Transaction Propagation**: Transactions are propagated and replicated across the network.
+- **Forgery Protection**: Transactions require valid outputs to be accepted.
+- **Consistency**: Blocks, once recorded, require an unfeasible amount of energy to modify.
+- **Commit External Data**: External data can be embedded in transactions using `OP_RETURN`.
+- **Predictable Issuance**: The total supply of Bitcoin is capped at 21 million coins.
 
-#### Financial Services
+### Some Applications from Building Blocks
 
-- **Cross-Border Payments:**
-  - Traditional systems are slow and expensive.
-  - Blockchain enables faster, cheaper transactions.
-- **Smart Contracts:**
-  - Self-executing contracts with terms directly written into code.
-  - Automatically enforce agreements when conditions are met.
+- **Proof-of-Existence (Digital Notary)** allows for the creation of digital fingerprints that prove the existence of documents at a specific time, using timestamps.
+- **Kickstarter-Style Fundraising** enables *trustless* crowdfunding where funds are distributed only if predefined conditions are met.
+- **Payment Channels**. See below for detailed notes on **Payment Channels** and **State Channels**.
 
-#### Supply Chain Management
+### Colored Coins
 
-- **Transparency and Traceability:**
-  - Track goods from origin to destination.
-  - Verify authenticity and ethical sourcing.
-- **Efficiency:**
-  - Reduce paperwork and intermediaries.
-  - Improve inventory management.
+Colored coins represent assets other than Bitcoin using Bitcoin's blockchain.
 
-#### Identity Management
+- **Definition**: A specific amount of Bitcoin (e.g., 1 satoshi) is marked to represent something else, such as:
+  - Stock certificates.
+  - Gold-redeemable certificates.
+  - Event tickets.
 
-- **Self-Sovereign Identity:**
-  - Individuals control their own identity data.
-  - Secure, portable, and verifiable identity credentials.
-- **Access Control:**
-  - Decentralized identity systems for secure access to services.
+- **Mechanism**:
+  - Colored coins use the `OP_RETURN` script code.
+  - The metadata for the representation is stored in transaction metadata, often in conjunction with external data stores.
 
-#### Healthcare
+- **Implications**:
+  - Specialized wallets, clients, and explorers are required to manage, transfer, and explore colored coins.
+  - Regular wallets and explorers may not recognize or retain the metadata, leading to potential loss of the "color" if mismanaged.
 
-- **Patient Data Management:**
-  - Secure, interoperable medical records.
-  - Patient-controlled access to health data.
-- **Drug Traceability:**
-  - Combat counterfeit drugs by tracking the supply chain.
+### Counterparty
 
-#### Voting Systems
+Counterparty is a protocol layer built on top of Bitcoin that offers functionalities similar to colored coins; it enables:
 
-- **Transparency and Security:**
-  - Immutable records of votes.
-  - Reduce fraud and increase voter confidence.
-- **Accessibility:**
-  - Enable secure online voting.
+- Creation and trading of virtual assets and tokens.
+- Implementation of smart contracts (leveraging Ethereum concepts).
 
-### Challenges and Considerations
+### Payment Channels and State Channels
 
-- **Scalability:** Handling a large number of transactions efficiently.
-- **Regulation:** Navigating legal and regulatory frameworks.
-- **Interoperability:** Ensuring compatibility between different blockchain systems.
-- **Privacy:** Balancing transparency with data privacy.
+Payment Channels enable **off-chain** Bitcoin transactions and are the foundation of Layer-2 implementations like Lightning.
 
-### Future Prospects
+- Purpose:
+  - High transaction throughput.
+  - Low latency (sub-millisecond).
+  - Fine granularity (e.g., satoshis).
+  - Example used in the book: a video streaming service, in which we pay by second watched.
+- Mechanism:
+  - Payment channels are opened with a **funding transaction**, representing the initial balance.
+  - Transactions between the two parties (commitment transactions) occur off-chain, altering the channel state.
+  - Only the **final state** is settled on-chain using a settlement transaction.
 
-Blockchain technology continues to evolve, with potential breakthroughs in areas such as:
+Therefore, the Bitcoin blockchain sees only two transactions:
 
-- **Interoperable Blockchains:** Seamless communication between different blockchain networks.
-- **Zero-Knowledge Proofs:** Enhancing privacy without sacrificing transparency.
-- **Decentralized Finance (DeFi):** Expanding financial services through decentralized platforms.
+- **Funding Transaction**: Opens the channel and sets its capacity. It is a 2-of-2 multisig transaction.
+- **Settlement Transaction**: Closes the channel and records the final state; the balance between the 2 channels parties is settled. This transaction can be initiated by any of the 2 parties.
 
-## Chapter 13: Scaling Bitcoin
+![Payment Channels - Antonopoulos](./assets/mbc3_1401.png)
 
-### The Need for Scaling
+The explained channels work if both parties have good faith and cooperate with each other; however, to achieve *trustless* channels, we need to add two more features:
 
-Bitcoin's popularity has highlighted its scalability limitations. The network can handle a limited number of transactions per second, leading to congestion and higher fees during peak times.
+- **Timelocked Transactions**: All commitment transactions are *timelocked* to prevent abuse. If a party disappears, the other can redeem the balance after the `nLocktime` arreives (e.g., 30 days or 4320 blocks).
+- **Revocation**: Commitment transactions can be revoked to ensure proper behavior; this is achieved by entering a delay in the outputs, and by defining a revocation key.
 
-### Layer 1 Solutions
+#### Hash Time Lock Contracts (HTLC)
 
-#### Block Size Increase
+Hash Time Lock Contracts (HTLCs) are fundamental for the **Lightning Network**:
 
-- Proposal: Increase the block size to allow more transactions per block.
-- Challenges:
-  - Larger blocks require more storage and bandwidth.
-  - Centralization risk as fewer nodes can handle larger blocks.
+- Participants commit funds to a redeemable secret `R`, which has an expiration time.
+- The secret is hashed: `H = hash(R)`.
+- If the secret is revealed, the recipient can claim the funds.
+- If the secret is not revealed, but the expiration time passes, the sender is refunded.
 
-#### Segregated Witness (SegWit)
+### Routed Payment Channels: Lightning Network
 
-- SegWit: Separates transaction signatures from transaction data.
-- Benefits:
-  - Reduces transaction size, increasing block capacity.
-  - Fixes transaction malleability.
-  - Enables second-layer solutions like the Lightning Network.
+The Lightning Network is an extension of payment channels that enables **routed payments**:
 
-### Layer 2 Solutions
+- Payments can be routed through a network of bidirectional channels without requiring direct connections between participants.
+- No trust is required for intermediaries.
+- The Lightning Network is scalable:
+  - Enables Bitcoin to scale to a global payment network.
+  - The number of transactions per second is effectively unlimited.
+- It was proposed by Joseph Poon and Thaddeus Dryja in February 2015.
+- It is being implemented by multiple independent teams following the **BOLT** (Basics of Lightning Technology) standard: [lightning/bolts](https://github.com/lightning/bolts/tree/master).
+- Lightning relies on **SegWit** to prevent malleability and enable efficient off-chain transactions.
 
-#### The Lightning Network
+#### How It Works
 
-- **Concept:** Off-chain network for fast, low-cost transactions.
-- **How It Works:**
-  - Users open payment channels funded with on-chain transactions.
-  - Transactions within the channel are instant and off-chain.
-  - Only the final channel balance is recorded on the blockchain.
-- **Benefits:**
-  - Scalability: Handle millions of transactions per second.
-  - Cost: Minimal fees for microtransactions.
-- **Challenges:**
-  - Complexity: Requires new infrastructure and protocols.
-  - Liquidity: Channels need to be adequately funded.
+A payer (A) routes a payment to a payee (D) through intermediate nodes (B and C). The payment is constructed using HTLCs, which ensure that funds can only be claimed by revealing a secret known to the payee (see book on page 298).
 
-### Other Approaches
+![Lightning Network - Antonopoulos](./assets/mbc3_1407.png)
 
-#### Sidechains
+```
+Imagine a route which goes from user A -> B -> C -> D
+  Channels are marked with ->
+  Users A & D are not connected, but A wants to pay 1 bitcoin to D
 
-- **Sidechains:** Separate blockchains linked to the main Bitcoin blockchain.
-- **Use Cases:**
-  - Experiment with new features without affecting the main chain.
-  - Improve scalability and functionality.
-- **Challenges:**
-  - Security: Ensuring sidechains are secure and tamper-proof.
-  - Interoperability: Seamless transfer of assets between chains.
+D (receiver/payee) creates a secret R, which is hashed to be H = hash(R)
+  D gives H to A
+A's node creates a route to D
+  A -> B -> C -> D
+  The route is encrypted so that
+    A sees all nodes
+    The rest of the nodes see only who are the adjacent nodes in the route
+    This is achieved with the onion-routed protocol:
+      The message (which contains the path) is encrypted in layers with the public keys of the path nodes backwards so that each node knows the next recipient of the message
+A creates an HTLC transaction of 1.02 bitcoin to B
+  1 bitcoin + 0.02 routing fees
+  The fees are derived from the route nodes: 0.01 (B) + 0.01 (C)
+  The transaction is constructed with HTLC, and it reads
+    "A is commiting to pay 1.02 bitcoin to B, if B knows the secret that yields the hash H, or refunded to A after X blocks"
+  The tx contains also the encrypted path (with the onion protocol)
 
-#### Schnorr Signatures
+B gets the tx from A, and can now unpack/decrypt the message
+  B now constructs an equivalent tx to C
+  C is in the message
+  The amount is 1 bitcoin + 0.01 (C fee)
+  Tt's a HTLC tx, which reads
+    "B is commiting to pay 1.01 bitcoin to C, if C knows the secret taht yields the hash H, or refunded to B after X-1 blocks"
 
-- **Schnorr Signatures:** Improved cryptographic signatures.
-- **Benefits:**
-  - Smaller signature sizes.
-  - Enhanced privacy and security.
-  - Support for multi-signature transactions.
-- **Implementation:** Requires consensus and network upgrade.
+Finally, C receives the tx and generates a tx of 1 bitcoin to D with in HTLC style
+  Since D does know the secret that produces H (A sent him!)
+  He sends it to to C to redeem that 1 bitcoin
+  Then, C sends it to B to claim the 1.01-1 = 0.01 bitcoin in fees
+  B to A -> 1.02-1.01 = 0.01 bitcoin in fees
+```
 
-### Ongoing Research
+#### Note on Lightning
 
-Researchers and developers are exploring various avenues to enhance Bitcoin's scalability, including:
+In Lightning, participants must allocate funds they already own to the network. These funds may be used for payments or routing but remain locked unless explicitly spent. This introduces a new mindset where users must have funds available upfront to participate in transactions.
 
-- **Sharding:** Partitioning the blockchain to distribute the load.
-- **Cross-Chain Atomic Swaps:** Enabling trustless exchange of assets between blockchains.
-- **Protocol Optimizations:** Improving the efficiency of the underlying protocol.
+## Appendix D: Segregated Witness
 
-## Chapter 14: Bitcoin and the Future of Decentralization
-
-### Bitcoin's Role in Decentralization
-
-Bitcoin pioneered the concept of decentralized finance and governance, challenging traditional centralized systems.
-
-### Decentralized Finance (DeFi)
-
-- **DeFi Ecosystem:**
-  - Decentralized exchanges (DEXs).
-  - Lending and borrowing platforms.
-  - Stablecoins and synthetic assets.
-- **Benefits:**
-  - Financial inclusion: Access to financial services without intermediaries.
-  - Innovation: New financial products and services.
-- **Challenges:**
-  - Security: Smart contract vulnerabilities.
-  - Regulation: Legal and regulatory uncertainties.
-
-### Decentralized Governance
-
-- **Decentralized Autonomous Organizations (DAOs):**
-  - Organizations governed by code and community consensus.
-  - Example: MakerDAO, a decentralized stablecoin system.
-- **Benefits:**
-  - Transparency: All actions and decisions are publicly visible.
-  - Inclusivity: Community-driven decision-making.
-- **Challenges:**
-  - Coordination: Aligning the interests of diverse stakeholders.
-  - Security: Protecting against malicious actors.
-
-### The Future of Bitcoin
-
-Bitcoin's future is intertwined with the broader adoption of decentralized technologies. Key areas of focus include:
-
-- **Scalability:** Ensuring the network can handle increasing demand.
-- **Privacy:** Enhancing user privacy while maintaining transparency.
-- **Interoperability:** Facilitating seamless interaction with other blockchains and systems.
-- **Regulation:** Navigating evolving legal landscapes.
-
-### Conclusion
-
-Bitcoin has revolutionized the financial landscape, introducing the world to the possibilities of decentralized systems. As the technology evolves, it continues to inspire innovation and challenge traditional paradigms.
+TBD.
 
 ## Extra: Topics to Add
 
 - [ ] Liquid Network
 - [ ] Taproot
+- [ ] Ordinals
+- [ ] Schnorr signatures
+- [ ] CoinJoin
