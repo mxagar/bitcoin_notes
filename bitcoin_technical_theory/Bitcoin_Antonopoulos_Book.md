@@ -2161,58 +2161,61 @@ Bitcoin does not have a formal or centralized roadmap, as its development is dec
 - There is one central issue: The core layer/root can be attacked.
 - **In Bitcoin, the core layer are the private keys** - keeping private keys safe is the most important part of the security.
 
-<!-- HERE -->
+Three Pillars of Bitcoin Security:
 
-**Three Pillars of Bitcoin Security:**
 1. **Private Keys:**
    - Most important: Private keys control the funds.
    - If lost, funds are lost; if stolen, funds are stolen.
-   - **BEST PRACTICES:** Paper wallets, hardware wallets, backups.
+   - BEST PRACTICES: Paper wallets, hardware wallets, backups.
 2. **Pseudonymity and Privacy:**
    - Bitcoin transactions are public and pseudonymous.
-   - **Key Issue:** Reusing addresses - easy to track fund movement and owner identity.
-   - **BEST PRACTICES:** Use a new address for each transaction.
+   - Key Issue: Reusing addresses - easy to track fund movement and owner identity.
+   - BEST PRACTICES: Use a new address for each transaction.
 3. **Proof-of-Work:**
    - Miners secure the network and validate transactions.
-   - **Key Issue:** 51% attacks.
+   - Key Issue: 51% attacks.
 
 ### Private Key Management
 
-**Main Goal:** Safeguard private keys.
-- **Hardware Wallets:** Dedicated devices that store private keys and sign transactions.
-- **Paper Wallets:** Print private keys and store them securely.
-- **Hot Wallets:** Connected to the internet, convenient but less secure.
-- **Cold Wallets:** Not connected to the internet, more secure.
+Main Goal: Safeguard private keys.
+
+- Hardware Wallets: Dedicated devices that store private keys and sign transactions.
+- Paper Wallets: Print private keys and store them securely.
+- Hot Wallets: Connected to the internet, convenient but less secure.
+- Cold Wallets: Not connected to the internet, more secure.
 
 ### Pseudonymity and Privacy
 
-- **Pseudonymity:** Bitcoin transactions don't reveal real-world identities.
-- **Privacy Issues:**
-  - Linking transactions to individuals by clustering transactions.
-  - Using address reuse.
-  - **BEST PRACTICES:** Use a new address for each transaction.
+Bitcoin transactions don't reveal real-world identities, it's pseudonymous.
+
+Privacy issues we face when using Bitcoin:
+
+- KYC and tracking funds flow.
+- Linking transactions to individuals by clustering transactions.
+- Address reuse.
+- BEST PRACTICES: Use a new address for each transaction.
 
 ### Proof-of-Work Security
 
-- **Miners:** Secure the network and validate transactions.
-- **51% Attack:** If a single entity controls 51% of the network's hashing power, it can rewrite the blockchain.
-- **Solution:** Decentralized mining.
+- Miners secure the network and validate transactions.
+- 51% Attack: If a single entity controls 51% of the network's hashing power, it can rewrite the blockchain.
+- Solution: Decentralized mining.
 
 ### User Best Practices
 
-1. **Backups:**
+1. Backups:
    - Regularly back up private keys.
    - Store backups in multiple locations.
-2. **Encryption:**
+2. Encryption:
    - Encrypt private keys and sensitive data.
-3. **Cold Storage:**
+3. Cold Storage:
    - Store significant amounts of bitcoin in cold storage.
-4. **Multi-Signature:**
+4. Multi-Signature:
    - Use multi-signature wallets for added security.
 
 ## Chapter 12: Blockchain Applications
 
-### Introduction
+<!-- HERE -->
 
 Blockchain technology, the foundation of Bitcoin, has applications far beyond cryptocurrencies. Its properties of immutability, decentralization, and transparency offer revolutionary potential in various fields.
 
