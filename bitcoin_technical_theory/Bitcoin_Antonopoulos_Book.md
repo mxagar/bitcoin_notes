@@ -119,7 +119,9 @@ No guarantees.
       - [How It Works](#how-it-works)
       - [Note on Lightning](#note-on-lightning)
   - [Appendix D: Segregated Witness](#appendix-d-segregated-witness)
+    - [Summary of SegWit Advantages](#summary-of-segwit-advantages)
   - [Extra: Topics to Add](#extra-topics-to-add)
+  - [Extra: Taproot, Schnorr Signatures](#extra-taproot-schnorr-signatures)
 
 
 ## Chapter 1: Introduction
@@ -1152,6 +1154,8 @@ We have an **unlocking** script part (of the used UTXOs) and a **locking** scrip
 - Both parts are executed sequentially - if the result is true, the transaction is successful.
 - It enables a programmable money for which we can script infinite variations and sets of conditions that need to yield true.
 - These are **SMART CONTRACTS**: Transaction happens if script conditions are met, whatever these conditions are.
+
+![Input and Output Scripts in a Transaction - Antonopoulos](./assets/mbc3_0701.png)
 
 *Script* Language works as follows:
 
@@ -2477,12 +2481,92 @@ In Lightning, participants must allocate funds they already own to the network. 
 
 ## Appendix D: Segregated Witness
 
-TBD.
+Segregated Witness is an upgrade introduced in 2017; that is when the block wars happened, and in parallel, Bitcoin Cash was created.
+
+Segregated Witness is actually a **soft fork**, i.e., it is backwards compatible for old nodes which don't implement it.
+
+Witness is
+
+- in cryptography: the solution to a cryptographic puzzle;
+- in Bitcoin: `scriptSig`, i.e., the solution that unlocks the UTXO for spending, that is, effectively the **signature**.
+
+Before its introduction, the witness data was embedded into the transaction as part of each input. Now, the witness is segregated, i.e., separately stored, and used only during validation.
+
+Recall how the input and output scripts of a transaction are formed:
+
+- The `scriptPubKey` part represents the wallet which has the funds locked.
+- The `scriptSig` is the unlocking script, the script used to spend those funds.
+
+![Input and Output Scripts in a Transaction - Antonopoulos](./assets/mbc3_0701.png)
+
+```
+# Pre SegWit
+Transaction = [Inputs (with signatures)] + [Outputs]
+
+# SegWit
+Transaction = [Inputs (no signatures)] + [Outputs] + [Witness Data]
+```
+
+Note that the real/total transaction data is really the same pre and post SegWit, i.e., only the internal arrangement/structure is modified. Specifically:
+
+- SegWit transactions have often the `scriptSig` field empty.
+- SegWit transactions have the new field `txinwitness`, which contains the witness/signature.
+
+In other words:
+
+- We basically have a new field `txinwitness`, where the signature is written, instead of in `scriptSig`.
+- The **base transaction** part used to measure the transaction size consists of the **inputs, outputs, amounts** and excludes witness data.
+- The TXID is a double hash of the base transaction, so it does not include the witness either.
+
+Recall that blocks have a size restriction; with SegWit, since the part of the transaction (**base transaction**) is smaller, we can have more transactions per block.
+
+SegWit introduced a new metric: **Weight Units (WU)**, which are used to measure the size of the transaction. Each block can have a maximum of 4 million weight units. A related concept is `vsize` (virtual size), another new metric introduced with SegWit to measure the size of a Bitcoin transaction in **virtual bytes**. Here's how they work:
+
+- Block Weight, measured in Weight Units (WU):
+  - Weight = (Base Size × 3) + Total Size.
+  - The **base size** excludes witness data, while the **total size** includes it.
+  - Maximum block weight = 4,000,000 WU.
+- `vsize`, measured in **virtual bytes**:
+  - vsize = Weight ÷ 4
+  - This makes it easier to compare transactions as though the block size limit were still 1 MB.
+
+**Practical final note**: Native SegWit addresses start with `bc1` (Bech32); backward compatible P2SH (Pay-to-Script-Hash) addresses start with `3`.
+
+### Summary of SegWit Advantages
+
+- **Transaction malleability attacks were removed**: A flaw in Bitcoin’s original design allowed attackers to modify a transaction’s signature without invalidating it, resulting in a change to the transaction ID (TXID).
+  - The TXID of a transaction is the hash of the transaction’s serialized data.
+  - Before SegWit, this hash included the witness data (signatures).
+  - An attacker could modify the non-essential parts of the signature (e.g., by changing its format or adding extraneous data), creating a new valid signature that produced a different TXID.
+- **Scalability was improved**: The transaction data used to effectively measure the size becomes smaller, which makes space for more transactions per block.
+  - This increases scalability.
+  - Note that witness/signature data is often the largest part of the transaction.
+  - Block size increases effectively from 1 MB to 1.8MB.
+- We have **less fees**, because the size is effectively smaller.
+- **Faster and online verifications became possible**: Along with the witness segregation, the signature verification functions (`CHECKSIG`, `CHECKMULTISIG`, `CHECKSIGVERIFY`, `CHECKMULTISIGVERIFY`) were optimized:
+  - They became faster: from `O(n^2)` to `O(n)`.
+  - They became able to perform **offline** verifications!
+- **Layer 2 Solutions like Lightning become possible**. The reason for that is that transaction malleability issues are solved, enabling secure, fast off-chain payments.
+
+| Feature                  | Legacy Transaction       | SegWit Transaction       |
+|--------------------------|--------------------------|--------------------------|
+| Structure                | Signature in inputs      | Signature in witness     |
+| Block Size               | Max 1 MB                | Effectively ~1.8 MB (4 million weight units) |
+| Transaction Malleability | Vulnerable              | Fixed                    |
+| Fee Efficiency           | Higher fees             | Lower fees               |
+| Support for Layer 2      | Limited                 | Enabled                  |
 
 ## Extra: Topics to Add
 
+- [x] SegWit
 - [ ] Liquid Network
 - [ ] Taproot
-- [ ] Ordinals
 - [ ] Schnorr signatures
+- [ ] Ordinals
 - [ ] CoinJoin
+
+## Extra: Taproot, Schnorr Signatures
+
+:construction:
+
+TBD.
