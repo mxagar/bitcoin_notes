@@ -1,4 +1,4 @@
-# Mastering Bitcoin (Antonopoulos Book): My Notes
+# Mastering Bitcoin (Antonopoulos' Book): My Notes
 
 These are my notes of the book [**"Mastering Bitcoin", by Andreas M. Antonopoulos (O'Reilly, 2nd Edition)**](https://www.oreilly.com/library/view/mastering-bitcoin-2nd/9781491954379/).
 
@@ -13,15 +13,18 @@ Additionally, I have and will add new extra sections with new concepts (properly
 Finally, check also my notes on
 
 - Technical, practical aspects: [`Bitcoin_Practical_Guide.md`](../bitcoin_practical/Bitcoin_Practical_Guide.md)
-- Legal aspects: [`Bitcoin_Legal_Guide.md`](../bitcoin_practical/Bitcoin_Legal_Guide.md)
 - Economics and philosophical topics: [`Bitcoin_NonTechnical_Notes.md`](../bitcoin_economics_philosophy/Bitcoin_NonTechnical_Notes.md)
+
+<!--
+- Legal aspects: [`Bitcoin_Legal_Guide.md`](../bitcoin_practical/Bitcoin_Legal_Guide.md)
+-->
 
 Mikel Sagardia, 2020.  
 No guarantees.
 
 ## Table of Contents
 
-- [Mastering Bitcoin (Antonopoulos Book): My Notes](#mastering-bitcoin-antonopoulos-book-my-notes)
+- [Mastering Bitcoin (Antonopoulos' Book): My Notes](#mastering-bitcoin-antonopoulos-book-my-notes)
   - [Table of Contents](#table-of-contents)
   - [Chapter 1: Introduction](#chapter-1-introduction)
     - [Setup a Node](#setup-a-node)
@@ -121,7 +124,7 @@ No guarantees.
   - [Appendix D: Segregated Witness](#appendix-d-segregated-witness)
     - [Summary of SegWit Advantages](#summary-of-segwit-advantages)
   - [Extra: Topics to Add](#extra-topics-to-add)
-  - [Extra: Taproot, Schnorr Signatures](#extra-taproot-schnorr-signatures)
+  - [Extra: Taproot and Schnorr Signatures](#extra-taproot-and-schnorr-signatures)
 
 
 ## Chapter 1: Introduction
@@ -2560,12 +2563,14 @@ SegWit introduced a new metric: **Weight Units (WU)**, which are used to measure
 
 - [x] SegWit
 - [ ] Liquid Network
-- [ ] Taproot
-- [ ] Schnorr signatures
+- [ ] Taproot and Schnorr signatures
 - [ ] Ordinals
-- [ ] CoinJoin
+- [ ] CoinJoins
+- [ ] Covenants
+- [ ] Stealth Addresses
+- [ ] Multisig
 
-## Extra: Taproot, Schnorr Signatures
+## Extra: Taproot and Schnorr Signatures
 
 :construction:
 
