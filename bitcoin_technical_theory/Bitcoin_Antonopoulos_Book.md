@@ -10,14 +10,7 @@ Although I follow the general structure of the book, I have modified/extended so
 
 Additionally, I have and will add new extra sections with new concepts (properly citing the sources).
 
-Finally, check also my notes on
-
-- Technical, practical aspects: [`Bitcoin_Practical_Guide.md`](../bitcoin_practical/Bitcoin_Practical_Guide.md)
-- Economics and philosophical topics: [`Bitcoin_NonTechnical_Notes.md`](../bitcoin_economics_philosophy/Bitcoin_NonTechnical_Notes.md)
-
-<!--
-- Legal aspects: [`Bitcoin_Legal_Guide.md`](../bitcoin_practical/Bitcoin_Legal_Guide.md)
--->
+Finally, check also my notes on economics and philosophical topics around Bitcoin: [`Bitcoin_NonTechnical_Notes.md`](../bitcoin_economics_philosophy/Bitcoin_NonTechnical_Notes.md)
 
 Mikel Sagardia, 2020.  
 No guarantees.
@@ -137,7 +130,13 @@ I have used some of the media and material in that repository in my notes/summar
 
 ### Setup a Node
 
-To test many things explained in the book it is helpful to have a node up and running. To see how to set up a node, check the co-located guide [`../bitcoin_practical/Bitcoing_Practical_Guide.md`](../bitcoin_practical/Bitcoing_Practical_Guide.md). Example nodes easy to setup using a Raspberry Pi:
+To test many things explained in the book it is helpful to have a node up and running.
+
+<!--
+To see how to set up a node, check the co-located guide [`../bitcoin_practical/Bitcoing_Practical_Guide.md`](../bitcoin_practical/Bitcoing_Practical_Guide.md).
+-->
+
+Example nodes easy to setup using a Raspberry Pi:
 
 - [MyNode](https://mynodebtc.github.io)
 - [Umbrel](https://umbrel.com)
@@ -413,7 +412,13 @@ Key Ideas:
 
 ### Setup a Bitcoin Node
 
-To test many things explained in the book it is helpful to have a node up and running. To see how to set up a node, check the co-located guide [`../bitcoin_practical/Bitcoing_Practical_Guide.md`](../bitcoin_practical/Bitcoing_Practical_Guide.md). Example nodes easy to setup using a Raspberry Pi:
+To test many things explained in the book it is helpful to have a node up and running. 
+
+<!--
+To see how to set up a node, check the co-located guide [`../bitcoin_practical/Bitcoing_Practical_Guide.md`](../bitcoin_practical/Bitcoing_Practical_Guide.md).
+-->
+
+Example nodes easy to setup using a Raspberry Pi:
 
 - [MyNode](https://mynodebtc.github.io)
 - [Umbrel](https://umbrel.com)
@@ -444,7 +449,9 @@ After all that, we can **start the Bitcoin node**:
 
 If we have access to a bitcoin node (e.g., with [MyNode](https://mynodebtc.github.io)) we can interact with the Bitcoin client.
 
+<!--
 To see how to set up a node, check the co-located guide [`../bitcoin_practical/Bitcoing_Practical_Guide.md`](../bitcoin_practical/Bitcoing_Practical_Guide.md).
+-->
 
 The Bitcoin CLI is `bitcoin-cli`:
 
